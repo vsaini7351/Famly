@@ -1,16 +1,34 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const VideoSchema = new mongoose.Schema({
-  familyId: { type: Number, required: true },
-  userId: { type: Number, required: true },
-  title: String,
+const videoSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  videoUrl: {
+    type: String, 
+    required: true
+  },
   description: String,
-  videoUrl: { type: String, required: true },
-  metadata: { durationSec: Number, resolution: String },
-  aiTags: [String],
-  linkedBy: [Number],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
 
-module.exports = mongoose.model('Video', VideoSchema);
+  uploaded_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  family_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Family",
+    required: true
+  },
+
+  liked_by: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ]
+}, { timestamps: true });
+
+export default mongoose.model("Video", videoSchema);

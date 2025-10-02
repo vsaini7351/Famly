@@ -1,14 +1,29 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const TextSchema = new mongoose.Schema({
-  familyId: { type: Number, required: true },
-  userId: { type: Number, required: true },
-  title: String,
-  content: { type: String, required: true },
-  aiTags: [String],
-  linkedBy: [Number],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
+const textSchema = new mongoose.Schema({
+  content: {
+    type: String,
+    required: true
+  },
 
-module.exports = mongoose.model('Text', TextSchema);
+  uploaded_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  family_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Family",
+    required: true
+  },
+
+  liked_by: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ]
+}, { timestamps: true });
+
+export default mongoose.model("Text", textSchema);

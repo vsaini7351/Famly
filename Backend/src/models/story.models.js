@@ -1,15 +1,34 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const PhotoSchema = new mongoose.Schema({
-  familyId: { type: Number, required: true },
-  userId: { type: Number, required: true },
-  title: String,
+const storySchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  mediaUrl: {
+    type: String, 
+    required: true
+  },
   description: String,
-  photoUrl: { type: String, required: true },
-  aiTags: [String],
-  linkedBy: [Number],
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-});
 
-module.exports = mongoose.model('Photo', PhotoSchema);
+  uploaded_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
+  family_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Family",
+    required: true
+  },
+
+  liked_by: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User"
+    }
+  ]
+}, { timestamps: true });
+
+export default mongoose.model("Story", storySchema);
