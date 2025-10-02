@@ -1,6 +1,6 @@
 {
   "name": "famly_backend",
-  "type":"module",
+  "type": "module",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,7 @@
     "mongoose": "^8.18.3",
     "mongoose-aggregate-paginate-v2": "^1.1.4",
     "multer": "^2.0.2",
+    "mysql2": "^3.15.1",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
