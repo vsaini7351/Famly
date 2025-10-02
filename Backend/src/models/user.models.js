@@ -12,7 +12,7 @@ class User extends Model {
         dob: { type: DataTypes.DATEONLY, allowNull: false },
         gender: { type: DataTypes.STRING, allowNull: false },
         email: { type: DataTypes.STRING, allowNull: false, unique: true },
-        phone_no: { type: DataTypes.STRING, allowNull: false, unique: false },
+        phone_no: { type: DataTypes.STRING, allowNull: false},
         passwordHash: { type: DataTypes.STRING, allowNull: false },
         profilePhoto: { type: DataTypes.STRING, allowNull: false }, // store URL
         refreshToken: { type: DataTypes.STRING, allowNull: false },
