@@ -10,16 +10,22 @@ const mediaSchema = new mongoose.Schema({
 const storySchema = new mongoose.Schema({
   title: { type: String, required: true },
   caption: { type: String },
+  memory_date: { type: Date, default: Date.now },
+  tags: [{type: String,lowercase:true}],
   
   // References to PostgreSQL entities
   uploaded_by: { type: Number, required: true }, // PostgreSQL user_id
   family_id: { type: Number, required: true },   // PostgreSQL family_id
   
   media: [mediaSchema],
-  liked_by: [{ type: Number }] // PostgreSQL user IDs who liked
+  liked_by: { type: [Number], default: [] } // PostgreSQL user IDs who liked
 }, { timestamps: true });
 
 // Index for timeline queries
 storySchema.index({ family_id: 1, createdAt: -1 });
+storySchema.index({ memory_date: 1 });  // ascending
+storySchema.index({ memory_date: -1 }); // descending
+storySchema.index({ tags: 1 }); 
 
-export default mongoose.model("Story", storySchema);
+
+export const Story= mongoose.model("Story", storySchema);
