@@ -16,14 +16,15 @@ class User extends Model {
         passwordHash: { type: DataTypes.STRING, allowNull: false },
         profilePhoto: { type: DataTypes.STRING, allowNull: false }, // store URL
         refreshToken: { type: DataTypes.STRING, allowNull: false },
-        created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
-        updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+        
       },
       {
         sequelize,
         modelName: "User",
         tableName: "users",
-        timestamps: false,
+        timestamps: true,           
+        createdAt: "created_at",    
+        updatedAt: "updated_at" 
       }
     );
 
