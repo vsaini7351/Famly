@@ -1,63 +1,65 @@
-import mongoose from "mongoose";
-import jwt from "jsonwebtoken"
-import bcrypt from "bcrypt"   
+const { DataTypes, Model } = require("sequelize");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
-const userSchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: true 
-  },
-  email: { 
-    type: String, 
-    unique: true, 
-    required: true 
-  },
-  passwordHash: { 
-    type: String, 
-    required: true 
-  },
-  gender: { 
-    type: String 
-  },
-  dob: { 
-    type: Date 
-  },
-  age: { 
-    type: Number 
-  },
-  interests: [{ 
-    type: String 
-  }],
-  profilePhoto: { 
-    type: String 
-  },
-
-
-  families: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "Family" }
-  ],
-
-  // ✅ User Timeline: refs to story, video, text
-  timeline: [
-    {
-      itemType: { 
-        type: String, 
-        enum: ["Story", "Video", "Text"], 
-        required: true 
+class User extends Model {
+  static initModel(sequelize) {
+    User.init(
+      {
+        user_id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        fullname: { type: DataTypes.STRING, allowNull: false },
+        username: { type: DataTypes.STRING, allowNull: false, unique: true },
+        dob: { type: DataTypes.DATEONLY, allowNull: false },
+        gender: { type: DataTypes.STRING, allowNull: false },
+        email: { type: DataTypes.STRING, allowNull: false, unique: true },
+        phone_no: { type: DataTypes.STRING, allowNull: false, unique: true },
+        passwordHash: { type: DataTypes.STRING, allowNull: false },
+        profilePhoto: { type: DataTypes.STRING, allowNull: false }, // store URL
+        refreshToken: { type: DataTypes.STRING, allowNull: false },
+        created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
+        updated_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW, allowNull: false },
       },
-      refId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        required: true, 
-        refPath: "timeline.itemType" 
-        // refPath makes it dynamic → can point to Story, Video, or Text
-      },
-      uploadedAt: { 
-        type: Date, 
-        default: Date.now 
+      {
+        sequelize,
+        modelName: "User",
+        tableName: "users",
+        timestamps: false,
       }
-    }
-  ]
+    );
 
-}, { timestamps: true });
+    // Hooks
+    User.beforeCreate(async (user) => {
+      user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
+    });
+    User.beforeUpdate(async (user) => {
+      if (user.changed("passwordHash")) {
+        user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
+      }
+    });
 
-export default mongoose.model("User", userSchema);
+    return User;
+  }
+
+  // Instance Methods
+  async isPasswordCorrect(password) {
+    return await bcrypt.compare(password, this.passwordHash);
+  }
+
+  generateAccessToken() {
+    return jwt.sign(
+      { user_id: this.user_id, email: this.email, phone_no: this.phone_no },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+  }
+
+  generateRefreshToken() {
+    return jwt.sign(
+      { user_id: this.user_id, email: this.email, phone_no: this.phone_no },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+  }
+}
+
+module.exports = User;

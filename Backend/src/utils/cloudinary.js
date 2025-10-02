@@ -40,5 +40,5 @@ import fs from "fs"
 
    
    
-  export {uploadOnCloudinary}
+  export {uploadOnCloudinary , deleteFromCloudinary}
    
