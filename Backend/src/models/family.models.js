@@ -7,15 +7,15 @@ class Family extends Model {
       family_name: { type: DataTypes.STRING, allowNull: false },
       created_by: { type: DataTypes.INTEGER, allowNull: false },
       root_member: { type: DataTypes.INTEGER, allowNull: true },
+      start_at: {type:DataTypes.INTEGER, allowNull:false},
       parent_family_id: { type: DataTypes.INTEGER, allowNull: true },
      
     }, {
       sequelize,
       modelName: 'Family',
       tableName: 'families',
-      timestamps: true,
-      createdAt: 'created_at',
-      updatedAt: 'updated_at'
+      timestamps: false
+      
     });
     return Family;
   }
