@@ -2,29 +2,30 @@ import { Privategroup } from "../models/privategroup.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-
+const generateInvitationCode = () => {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // exclude confusing letters
+  let code = "FAM-";
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+};
 // ========== CREATE GROUP ==========
 const createPrivateGroup = asyncHandler(async (req, res) => {
-  const { name, description, inviteCode } = req.body;
-
-  if (!name || !inviteCode) {
-    throw new ApiError(400, "Group name and invite code are required");
+  const { name, description } = req.body;
+  const inviteCode =generateInvitationCode() 
+  if (!name ) {
+    throw new ApiError(400, "Group name  are required");
   }
 
-  // check uniqueness of inviteCode
-  const existing = await Privategroup.findOne({ inviteCode });
-  if (existing) throw new ApiError(400, "Invite code already taken");
-
-  
   const newGroup = await Privategroup.create({
-    groupId: `grp_${Date.now()}`,
     name,
     description,
     inviteCode,
-    createdBy: req.user._id,
+    createdBy: req.user.user_id,
     members: [
       {
-        user: req.user._id,
+        user: req.user.user_id,
         role: "owner"
       }
     ]
@@ -34,6 +35,7 @@ const createPrivateGroup = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, newGroup, "Private group created successfully"));
 });
+
 
 // ========== JOIN GROUP ==========
 const joinPrivateGroup = asyncHandler(async (req, res) => {
@@ -45,12 +47,12 @@ const joinPrivateGroup = asyncHandler(async (req, res) => {
 
   // check if user already in group
   const alreadyMember = group.members.some(
-    (m) => m.user.toString() === req.user._id.toString()
+    (m) => m.user_id === req.user.user_id
   );
   if (alreadyMember) throw new ApiError(400, "Already a member of this group");
 
   group.members.push({
-    user: req.user._id,
+    user_id: req.user.user_id,
     role: "member"
   });
   await group.save();
@@ -62,9 +64,7 @@ const joinPrivateGroup = asyncHandler(async (req, res) => {
 
 // ========== GET USER GROUPS ==========
 const getMyPrivateGroups = asyncHandler(async (req, res) => {
-  const groups = await Privategroup.find({ "members.user": req.user._id })
-    .populate("createdBy", "fullname username email")
-    .populate("members.user", "fullname username email");
+  const groups = await Privategroup.find({ "members.user_id": req.user.user_id })
 
   return res.json(
     new ApiResponse(200, groups, "Fetched your private groups successfully")
@@ -83,7 +83,7 @@ const addGroupStory = asyncHandler(async (req, res) => {
 
   // check if user is member
   const isMember = group.members.some(
-    (m) => m.user.toString() === req.user._id.toString()
+    (m) => m.user_id === req.user.user_id
   );
   if (!isMember) throw new ApiError(403, "You are not a member of this group");
 
@@ -93,7 +93,7 @@ const addGroupStory = asyncHandler(async (req, res) => {
     url,
     mimeType,
     size,
-    createdBy: req.user._id
+    createdBy: req.user.user_id
   });
   await group.save();
 
@@ -111,34 +111,32 @@ const getGroupDetails = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
 
   const group = await Privategroup.findOne({ groupId })
-    .populate("createdBy", "fullname username email")
-    .populate("members.user", "fullname username email");
 
   if (!group) throw new ApiError(404, "Group not found");
 
-  return res.json(new ApiResponse(200, group, "Group details fetched"));
+  return res.status(200).json(new ApiResponse(200, group, "Group details fetched"));
 });
 
 // ========== REMOVE MEMBER (owner only) ==========
 const removeMember = asyncHandler(async (req, res) => {
-  const { groupId, memberId } = req.params;
-
+  const { groupId } = req.params;
+  const {memberId} =req.body;
   const group = await Privategroup.findOne({ groupId });
   if (!group) throw new ApiError(404, "Group not found");
 
   // check if current user is owner
   const owner = group.members.find(
     (m) =>
-      m.user.toString() === req.user._id.toString() && m.role === "owner"
+      m.user_id === req.user.user_id && m.role === "owner"
   );
   if (!owner) throw new ApiError(403, "Only owner can remove members");
 
   group.members = group.members.filter(
-    (m) => m.user.toString() !== memberId.toString()
+    (m) => m.user_id !== memberId
   );
   await group.save();
 
-  return res.json(new ApiResponse(200, group, "Member removed successfully"));
+  return res.status(200).json(new ApiResponse(200, group, "Member removed successfully"));
 });
 // ========== DELETE GROUP (owner only) ==========
 const deletePrivateGroup = asyncHandler(async (req, res) => {
@@ -149,14 +147,16 @@ const deletePrivateGroup = asyncHandler(async (req, res) => {
 
   // check if current user is owner
   const owner = group.members.find(
-    (m) => m.user.toString() === req.user._id.toString() && m.role === "owner"
+    (m) => m.user_id === req.user.user_id && m.role === "owner"
   );
   if (!owner) throw new ApiError(403, "Only owner can delete the group");
 
   await group.deleteOne();
 
-  return res.json(new ApiResponse(200, {}, "Group deleted successfully"));
+  return res.status(200).json(new ApiResponse(200, {}, "Group deleted successfully"));
 });
+
+
 // ========== UPDATE GROUP DETAILS ==========
 const updatePrivateGroup = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
@@ -167,7 +167,7 @@ const updatePrivateGroup = asyncHandler(async (req, res) => {
 
   // check if current user is owner
   const owner = group.members.find(
-    (m) => m.user.toString() === req.user._id.toString() && m.role === "owner"
+    (m) => m.user_id === req.user.user_id && m.role === "owner"
   );
   if (!owner) throw new ApiError(403, "Only owner can update group details");
 
@@ -176,8 +176,10 @@ const updatePrivateGroup = asyncHandler(async (req, res) => {
 
   await group.save();
 
-  return res.json(new ApiResponse(200, group, "Group updated successfully"));
+  return res.status(200).json(new ApiResponse(200, group, "Group updated successfully"));
 });
+
+
 // ========== LEAVE GROUP ==========
 const leavePrivateGroup = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
@@ -187,7 +189,7 @@ const leavePrivateGroup = asyncHandler(async (req, res) => {
 
   // check if user is a member
   const memberIndex = group.members.findIndex(
-    (m) => m.user.toString() === req.user._id.toString()
+    (m) => m.user_id === req.user.user_id
   );
   if (memberIndex === -1) throw new ApiError(400, "You are not a member of this group");
 
@@ -199,7 +201,7 @@ const leavePrivateGroup = asyncHandler(async (req, res) => {
   group.members.splice(memberIndex, 1);
   await group.save();
 
-  return res.json(new ApiResponse(200, {}, "You left the group successfully"));
+  return res.status(200).json(new ApiResponse(200, {}, "You left the group successfully"));
 });
 
 export {

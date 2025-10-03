@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { INTEGER } from "sequelize";
 
 // Private group schema
 const privategroupSchema = new Schema({
@@ -28,17 +29,16 @@ const privategroupSchema = new Schema({
     },
 
     createdBy: {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        type: Number,
         required: true
     },
 
     members: [
         {
-        user: { 
-            type: Schema.Types.ObjectId,
-            ref: "User", 
-            required: true },
+        user_id:{
+            type: Number,
+            required: true
+        },
         role: {
             type: String,
             enum: ["owner", "member"],
@@ -62,14 +62,10 @@ const privategroupSchema = new Schema({
         mimeType: String,
         size: Number,
         createdBy: { 
-            type: Schema.Types.ObjectId,
-            ref: "User",
+            type: Number,
             required: true
         },
-        createdAt: {
-            type: Date,
-            default: Date.now
-        }
+        
     }]
 }, { timestamps: true });
 
