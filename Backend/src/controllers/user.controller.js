@@ -273,4 +273,31 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 // user timeline content.controller.js me hai
 
-export {registerUser,loginUser,logout,loginWithGoogle,refreshAccessToken,getCurrentUser,updateAccountDetails,updateUserProfileImage,getUserProfile,changeCurrentPassword}
+
+const getUserFamilies = asyncHandler(async (req, res) => {
+  const userId = req.user.user_id;
+
+  // Fetch memberships for the user
+  const memberships = await Membership.findAll({
+    where: { user_id: userId },
+    attributes: ["family_id", "role"],
+  });
+
+  if (!memberships || memberships.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "User is not a member of any family"));
+  }
+
+  // Format response
+  const result = memberships.map(m => ({
+    family_id: m.family_id,
+    role: m.role,
+  }));
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, result, "User families fetched successfully"));
+});
+
+export {registerUser,loginUser,logout,loginWithGoogle,refreshAccessToken,getCurrentUser,updateAccountDetails,updateUserProfileImage,getUserProfile,changeCurrentPassword,getUserFamilies}
