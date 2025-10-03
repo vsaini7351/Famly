@@ -35,9 +35,14 @@ import userRouter from './routes/user.routes.js'
 
 app.use("/api/v1/user",userRouter)
 
-import  Privategroup  from './routes/privategroup.routes.js';
+import familyRouter from './routes/family.routes.js'
 
-app.use("/api/v1" , Privategroup);
+app.use("/api/v1/family" , familyRouter);
+
+
+import contentRouter  from './routes/content.routes.js'
+
+app.use("/api/v1/content" , contentRouter);
 
 
 //////// To be removed
