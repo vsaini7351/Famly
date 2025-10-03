@@ -57,4 +57,4 @@ router.put(
 // Get another user’s profile by ID
 router.get("/:userId/profile", getUserProfile);
 
-export default router;
+export default router;  
