@@ -14,8 +14,9 @@ export class User extends Model {
         email: { type: DataTypes.STRING, allowNull: false, unique: true },
         phone_no: { type: DataTypes.STRING, allowNull: false },
         passwordHash: { type: DataTypes.STRING, allowNull: false },
-        profilePhoto: { type: DataTypes.STRING, allowNull: false }, // store URL
-        refreshToken: { type: DataTypes.STRING, allowNull: false },
+        profilePhoto: { type: DataTypes.STRING, allowNull: true }, // store URL
+        refreshToken: { type: DataTypes.STRING, allowNull: true },
+        parent_family:{type: DataTypes.INTEGER,allowNull:true}
       },
       {
         sequelize,
