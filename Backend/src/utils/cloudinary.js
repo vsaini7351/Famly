@@ -38,13 +38,12 @@ const deleteFromCloudinary = async (url, resourceType = "image") => {
     if (!url.includes("res.cloudinary.com")) {
       throw new ApiError(400, "Invalid Cloudinary URL");
     }
+    console.log(url);
+   const match = url.match(/\/upload\/(?:[^/]+\/)?v\d+\/([^\.]+)\.\w+/);
+    if (!match) throw new ApiError(400, "Invalid Cloudinary URL format");
+   const publicId = match[1];
 
-    const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.(\w+)(?:\?.*)?$/);
-    if (!match) {
-      throw new ApiError(400, "Invalid Cloudinary URL format");
-    }
-
-    const publicId = match[1];
+   console.log(publicId);
     const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
     console.log(`✅ Cloudinary deletion result (${resourceType}):`, result);
     return result;

@@ -152,6 +152,7 @@ const unlikeStory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, story, "Story unliked successfully!"));
 });
 
+// fetching  family story acccording to memory date
 const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
   const limit = parseInt(req.query.limit) || 10;
@@ -182,6 +183,8 @@ const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
   );
 });
 
+
+// fetching family stroies according to recent uploaded date
 const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
   const limit = parseInt(req.query.limit) || 10;
@@ -319,7 +322,7 @@ const getStory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, story, "Story fetched successfully!"));
 });
 
-
+// fetches recent stories (posts/memories) from all families that the logged-in user belongs to,
 const getRecentStories = asyncHandler(async (req, res) => {
   const userId = req.user.user_id; // from auth middleware
   const page = parseInt(req.query.page) || 1;
@@ -357,6 +360,7 @@ const getRecentStories = asyncHandler(async (req, res) => {
   );
 });
 
+// fetching all user stories 
 const getUserRecentStories = asyncHandler(async (req, res) => {
   const userId = req.user.user_id; // from auth middleware
   const page = parseInt(req.query.page) || 1;
