@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
 import { uploadOnCloudinary, deleteImageOnCloudinary } from "../utils/cloudinary.js";
+import { Op } from 'sequelize';
 
 // Simple readable invitation code generator
 const generateInvitationCode = () => {
@@ -14,7 +15,7 @@ const generateInvitationCode = () => {
   return code;
 };
 
-export const createFamily = asyncHandler(async (req, res) => {
+const createFamily = asyncHandler(async (req, res) => {
   const { family_name, marriage_date, description } = req.body;
 
   // Get the user creating the family
@@ -83,7 +84,7 @@ export const createFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, newFamily, "Family created successfully"));
 });
 
-export const getFamily = asyncHandler(async (req, res) => {
+const getFamily = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
 
   // Fetch family
@@ -111,8 +112,9 @@ export const getFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, family, "Family fetched successfully"));
 });
 
-export const addMember = asyncHandler(async (req, res) => {
-  const { family_id, user_id } = req.body;
+const addMember = asyncHandler(async (req, res) => {
+const { family_id } = req.params;
+  const {user_id } = req.body;
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -166,7 +168,7 @@ export const addMember = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, membership, "Member added successfully"));
 });
 
-export const addRootMember = asyncHandler(async (req, res) => {
+const addRootMember = asyncHandler(async (req, res) => {
   const { user_id: targetUserId } = req.body;
   if (!targetUserId) throw new ApiError(400, "user_id is required");
 
@@ -234,7 +236,7 @@ export const addRootMember = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, family, "Root member added successfully"));
 });
 
-export const updateFamily = asyncHandler(async (req, res) => {
+const updateFamily = asyncHandler(async (req, res) => {
   const { family_id } = req.params; // family ID from route params
   const { family_name, marriage_date, description } = req.body;
 
@@ -273,8 +275,9 @@ export const updateFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, family, "Family details updated successfully"));
 });
 
-export const removeMember = asyncHandler(async (req, res) => {
-  const { family_id, user_id } = req.body;
+const removeMember = asyncHandler(async (req, res) => {
+ const { family_id } = req.params;
+  const {user_id } = req.body;
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -316,8 +319,8 @@ export const removeMember = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Member removed successfully"));
 });
 
-export const deleteFamily = asyncHandler(async (req, res) => {
-  const { family_id } = req.body;
+const deleteFamily = asyncHandler(async (req, res) => {
+  const { family_id } = req.params;
 
   if (!family_id) throw new ApiError(400, "family_id is required");
 
@@ -352,6 +355,6 @@ export const deleteFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Family deleted successfully"));
 });
 
-
+export { createFamily , getFamily , addMember , addRootMember , updateFamily , removeMember , deleteFamily , generateInvitationCode };
 
 
