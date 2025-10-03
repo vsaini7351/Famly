@@ -1,6 +1,6 @@
-const { DataTypes, Model } = require("sequelize");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+import { DataTypes, Model } from "sequelize";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 class User extends Model {
   static initModel(sequelize) {
@@ -12,19 +12,18 @@ class User extends Model {
         dob: { type: DataTypes.DATEONLY, allowNull: false },
         gender: { type: DataTypes.STRING, allowNull: false },
         email: { type: DataTypes.STRING, allowNull: false, unique: true },
-        phone_no: { type: DataTypes.STRING, allowNull: false},
+        phone_no: { type: DataTypes.STRING, allowNull: false },
         passwordHash: { type: DataTypes.STRING, allowNull: false },
         profilePhoto: { type: DataTypes.STRING, allowNull: false }, // store URL
         refreshToken: { type: DataTypes.STRING, allowNull: false },
-        
       },
       {
         sequelize,
         modelName: "User",
         tableName: "users",
-        timestamps: true,           
-        createdAt: "created_at",    
-        updatedAt: "updated_at" 
+        timestamps: true,
+        createdAt: "created_at",
+        updatedAt: "updated_at",
       }
     );
 
@@ -32,6 +31,7 @@ class User extends Model {
     User.beforeCreate(async (user) => {
       user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
     });
+
     User.beforeUpdate(async (user) => {
       if (user.changed("passwordHash")) {
         user.passwordHash = await bcrypt.hash(user.passwordHash, 10);
@@ -43,7 +43,11 @@ class User extends Model {
 
   // Instance Methods
   async isPasswordCorrect(password) {
-    return await bcrypt.compare(password, this.passwordHash);
+
+     if (!this.passwordHash) {
+    throw new Error("No password hash found for this user");
+  }
+    return bcrypt.compare(password, this.passwordHash);
   }
 
   generateAccessToken() {
@@ -63,4 +67,5 @@ class User extends Model {
   }
 }
 
-module.exports = User;
+// ES module export
+export default User;
