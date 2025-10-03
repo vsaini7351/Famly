@@ -1,12 +1,8 @@
 import mongoose, { Schema } from "mongoose";
-import { INTEGER } from "sequelize";
 
 // Private group schema
 const privategroupSchema = new Schema({
-    groupId: { 
-        type: String, 
-        required: true 
-    },
+   
     name: {
         type: String,
         required: true,
