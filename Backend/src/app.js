@@ -35,7 +35,9 @@ import userRouter from './routes/user.routes.js'
 
 app.use("/api/v1/user",userRouter)
 
+import  Privategroup  from './routes/privategroup.routes.js';
 
+app.use("/api/v1" , Privategroup);
 
 
 //////// To be removed
