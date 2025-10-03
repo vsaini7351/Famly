@@ -15,7 +15,7 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Google login controller
 
-exports.loginWithGoogle = asyncHandler(async (req, res) => {
+export const loginWithGoogle = asyncHandler(async (req, res) => {
   const { idToken } = req.body;
   if (!idToken) throw new ApiError(400, 'ID token is required');
 
@@ -46,7 +46,7 @@ exports.loginWithGoogle = asyncHandler(async (req, res) => {
 
 
 // ========== REGISTER USER ==========
-exports.registerUser = asyncHandler(async (req, res) => {
+export const registerUser = asyncHandler(async (req, res) => {
   const { fullname, username, dob, gender, email, phone_no, password } = req.body;
 
   if (!fullname || !username || !dob || !gender || !email || !phone_no || !password) {
@@ -92,7 +92,8 @@ exports.registerUser = asyncHandler(async (req, res) => {
 
 
 // make sure  frontend sends "identifier" (username/email/phone) instead of loginID ...
-exports.loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (req, res) => {
+  
   const { identifier, password } = req.body; // identifier = username/email/phone
 
   if (!identifier || !password) throw new ApiError(400, "All fields are required");
@@ -121,7 +122,7 @@ exports.loginUser = asyncHandler(async (req, res) => {
 
 
 // ========== LOGOUT ==========
-exports.logout = asyncHandler(async (req, res) => {
+export const logout = asyncHandler(async (req, res) => {
   const user = await User.findByPk(req.user.user_id);
   if (!user) throw new ApiError(404, "User not found");
 
@@ -139,7 +140,7 @@ exports.logout = asyncHandler(async (req, res) => {
 
 
 // ========== REFRESH TOKEN ==========
-exports.refreshAccessToken = asyncHandler(async (req, res) => {
+export const refreshAccessToken = asyncHandler(async (req, res) => {
   const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
   if (!incomingRefreshToken) throw new ApiError(401, "Unauthorized request");
 
@@ -177,13 +178,13 @@ exports.refreshAccessToken = asyncHandler(async (req, res) => {
 
 
 // ========== CURRENT USER ==========
-exports.getCurrentUser = asyncHandler(async (req, res) => {
+export const getCurrentUser = asyncHandler(async (req, res) => {
   return res.json(new ApiResponse(200, req.user, "Current user fetched"));
 });
 
 
 // ========== CHANGE PASSWORD ==========
-exports.changeCurrentPassword = asyncHandler(async (req, res) => {
+export const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   if (!oldPassword || !newPassword) throw new ApiError(400, "Both passwords required");
 
@@ -198,7 +199,7 @@ exports.changeCurrentPassword = asyncHandler(async (req, res) => {
 
 
 // ========== UPDATE PROFILE PHOTO ==========
-exports.updateUserProfileImage = asyncHandler(async (req, res) => {
+export const updateUserProfileImage = asyncHandler(async (req, res) => {
   if (!req.file?.path) throw new ApiError(400, "Profile image required");
 
  if (req.user.profilePhoto) {
@@ -213,7 +214,7 @@ await req.user.update({ profilePhoto: uploadRes.secure_url });
 
 
 // ========== GET USER PROFILE ==========
-exports.getUserProfile = asyncHandler(async (req, res) => {
+export const getUserProfile = asyncHandler(async (req, res) => {
   const { userId } = req.params;
   const user = await User.findByPk(userId, { attributes: { exclude: ["passwordHash", "refreshToken"] } });
   if (!user) throw new ApiError(404, "User not found");
@@ -224,7 +225,7 @@ exports.getUserProfile = asyncHandler(async (req, res) => {
 
 
 // ========== UPDATE ACCOUNT DETAILS ==========
-exports.updateAccountDetails = asyncHandler(async (req, res) => {
+export const updateAccountDetails = asyncHandler(async (req, res) => {
   const { fullname, username, gender, dob } = req.body;
 
   // Only pick fields that are not undefined
@@ -243,4 +244,4 @@ exports.updateAccountDetails = asyncHandler(async (req, res) => {
   return res.json(new ApiResponse(200, userData, "Account details updated"));
 });
 
-// user timeline content.controller.js me hai
+// user timeline content.controller.js

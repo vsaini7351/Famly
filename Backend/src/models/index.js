@@ -1,4 +1,4 @@
-const sequelize = require('../config/db');
+const sequelize = require('../db/index.js')
 const User = require('./user.model');
 const Family = require('./family.model');
 const Membership = require('./membership.model');

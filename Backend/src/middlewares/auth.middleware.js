@@ -1,9 +1,9 @@
-const { User } = require("../models"); // make sure index.js exports User
+const { User } = require("../models/user.models.js"); // make sure index.js exports User
 const { ApiError } = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 
-const verifyJWT = asyncHandler(async (req, res, next) => {
+export const verifyJWT = asyncHandler(async (req, res, next) => {
   // Get token from cookies or Authorization header
   const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
 
@@ -20,7 +20,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
 
   // Fetch user from PostgreSQL
   const user = await User.findByPk(decodedToken.user_id, {
-    attributes: { exclude: ["passwordHash", "refreshToken"] }
+    attributes: { exclude: [ "refreshToken"] }
   });
 
   if (!user) {
@@ -33,4 +33,4 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
   next();
 });
 
-module.exports = verifyJWT;
+

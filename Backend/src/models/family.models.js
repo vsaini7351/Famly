@@ -9,7 +9,8 @@ class Family extends Model {
       root_member: { type: DataTypes.INTEGER, allowNull: true },
       start_at: {type:DataTypes.INTEGER, allowNull:false},
       parent_family_id: { type: DataTypes.INTEGER, allowNull: true },
-     
+       profile_photo: { type: DataTypes.STRING, allowNull: true },
+        description: { type: DataTypes.TEXT, allowNull: true }
     }, {
       sequelize,
       modelName: 'Family',
