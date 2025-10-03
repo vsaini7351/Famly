@@ -3,7 +3,8 @@ import { deleteAudioOnCloudinary, deleteImageOnCloudinary, deleteVideoOnCloudina
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
-
+import mongoose from "mongoose";
+import { Membership } from "../models/index.js";
 
 const createStory = asyncHandler(async (req, res) => {
   const { title, caption, family_id,memory_date,ai_tags } = req.body;
@@ -106,7 +107,9 @@ const deleteStory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletedStory, "Story deleted successfully!"));
 });
 
- const likeStory = asyncHandler(async (req, res) => {
+
+
+ const likeStory = asyncHandler(async (req ,  res) => {
   const { storyId } = req.params;
 
  

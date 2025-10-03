@@ -355,6 +355,48 @@ const deleteFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Family deleted successfully"));
 });
 
-export { createFamily , getFamily , addMember , addRootMember , updateFamily , removeMember , deleteFamily , generateInvitationCode };
+// member himself can leave 
+const leaveFamily = asyncHandler(async (req, res) => {
+  const { family_id } = req.params;
+  const user_id = req.user.user_id; // the logged-in user
+
+  if (!family_id) throw new ApiError(400, "family_id is required");
+
+  // Start a transaction
+  await sequelize.transaction(async (t) => {
+    // Find the membership
+    const membership = await Membership.findOne({
+      where: { family_id, user_id },
+      transaction: t,
+    });
+
+    if (!membership) {
+      throw new ApiError(404, "You are not a member of this family");
+    }
+
+    // Check if user is a root member (cannot leave)
+    const family = await membership.getFamily({ transaction: t });
+    if (family.male_root_member === user_id || family.female_root_member === user_id) {
+      throw new ApiError(400, "Root members cannot leave the family");
+    }
+
+    // Delete membership
+    await membership.destroy({ transaction: t });
+
+    // Update user's parent_family to null
+    const user = await User.findByPk(user_id, { transaction: t });
+    if (user) {
+      user.parent_family = null;
+      await user.save({ transaction: t });
+    }
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "You have successfully left the family"));
+});
+
+
+export { createFamily , getFamily , addMember , addRootMember , updateFamily , removeMember , deleteFamily , generateInvitationCode ,leaveFamily};
 
 
