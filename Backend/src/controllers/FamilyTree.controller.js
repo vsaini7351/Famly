@@ -63,8 +63,22 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
       type: QueryTypes.SELECT,
     });
 
-    // 3) Attach members for each family
+    // 3) Fetch current family info
+    const [currentFamily] = await sequelize.query(
+      `
+      SELECT f.family_id, f.family_name, f.familyPhoto, 0 AS depth
+      FROM families f
+      WHERE f.family_id = :familyId
+      `,
+      {
+        replacements: { familyId },
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    // 4) Collect all family IDs to fetch members
     const familiesToFetch = [
+      familyId, // include current family
       ...ancestors.map(f => f.family_id),
       ...descendants.map(f => f.family_id),
     ];
@@ -73,10 +87,10 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
     if (familiesToFetch.length > 0) {
       members = await sequelize.query(
         `
-       SELECT m.family_id, u.user_id, u.fullname AS name, u.profilePhoto
-      FROM memberships m
-      JOIN users u ON u.user_id = m.user_id
-      WHERE m.family_id = ANY(:familyIds)
+        SELECT m.family_id, u.user_id, u.fullname AS name, u.profilePhoto
+        FROM memberships m
+        JOIN users u ON u.user_id = m.user_id
+        WHERE m.family_id = ANY(:familyIds)
         `,
         {
           replacements: { familyIds: familiesToFetch },
@@ -85,7 +99,7 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
       );
     }
 
-    // 4) Group members by family
+    // 5) Group members by family
     const membersByFamily = members.reduce((acc, m) => {
       if (!acc[m.family_id]) acc[m.family_id] = [];
       acc[m.family_id].push({
@@ -96,7 +110,7 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
       return acc;
     }, {});
 
-    // 5) Attach members into ancestors & descendants
+    // 6) Attach members into all families
     const enrichedAncestors = ancestors.map(f => ({
       ...f,
       members: membersByFamily[f.family_id] || [],
@@ -107,8 +121,13 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
       members: membersByFamily[f.family_id] || [],
     }));
 
+    const enrichedCurrentFamily = {
+      ...currentFamily,
+      members: membersByFamily[currentFamily.family_id] || [],
+    };
+
     return res.json({
-      familyId,
+      currentFamily: enrichedCurrentFamily,
       ancestors: enrichedAncestors,
       descendants: enrichedDescendants,
     });
