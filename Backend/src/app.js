@@ -44,6 +44,8 @@ import contentRouter  from './routes/content.routes.js'
 
 app.use("/api/v1/content" , contentRouter);
 
+import privateGrouprouter from './routes/privategroup.routes.js'
+app.use("/api/v1/private-group",privateGrouprouter )
 
 //////// To be removed
 
