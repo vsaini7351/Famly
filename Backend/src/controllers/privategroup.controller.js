@@ -2,6 +2,7 @@ import { Privategroup } from "../models/privategroup.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 const generateInvitationCode = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // exclude confusing letters
   let code = "FAM-";
@@ -64,7 +65,7 @@ const joinPrivateGroup = asyncHandler(async (req, res) => {
 
   // Check if user already in group
   const alreadyMember = group.members.some(
-    (m) => m.user_id === req.user.user_id
+    (m) => m.user_id.toString() === req.user.user_id.toString()
   );
   if (alreadyMember) {
     throw new ApiError(400, "Already a member of this group");
@@ -117,7 +118,7 @@ const getMyPrivateGroups = asyncHandler(async (req, res) => {
 const addGroupStory = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
   const { contentType, text } = req.body;
-  const files = req.files || [];
+  const file = req.file;
 
   if (!contentType) throw new ApiError(400, "Story contentType is required");
 
@@ -139,15 +140,15 @@ const addGroupStory = asyncHandler(async (req, res) => {
     newStory = {
       contentType,
       text,
-      createdBy: req.user.user_id
+      createdBy: Number(req.user.user_id)
     };
   }
 
   // ====== CASE 2: MEDIA STORY (image, video, audio, file) ======
   else {
-    if (!files.length) throw new ApiError(400, `${contentType} file is required`);
+    if (!file) throw new ApiError(400, `${contentType} file is required`);
 
-    const file = files[0]; // single file story
+    
 
     let resourceType = "auto";
     if (contentType === "image") resourceType = "image";
@@ -162,7 +163,7 @@ const addGroupStory = asyncHandler(async (req, res) => {
       mimeType: file.mimetype,
       size: file.size,
       text: text || "", // optional caption
-      createdBy: req.user.user_id
+      createdBy: Number(req.user.user_id)
     };
   }
 
@@ -172,6 +173,36 @@ const addGroupStory = asyncHandler(async (req, res) => {
   return res.status(201).json(
     new ApiResponse(201, newStory, "Story added successfully")
   );
+});
+
+
+// ========== REMOVE STORY FROM GROUP ==========
+const removeGroupStory = asyncHandler(async (req, res) => {
+  const { groupId, storyId } = req.params;
+
+  // Find group
+  const group = await Privategroup.findById(groupId);
+  if (!group) throw new ApiError(404, "Group not found");
+
+  // Find the story
+  const story = group.story.id(storyId);
+  if (!story) throw new ApiError(404, "Story not found");
+
+  // Check if current user is either story owner or group owner
+  const isOwner = group.createdBy.toString()===req.user.user_id.toString();
+  const isStoryCreator = story.createdBy.toString() === req.user.user_id.toString();
+
+  if (!isOwner && !isStoryCreator) {
+    throw new ApiError(403, "You are not authorized to delete this story");
+  }
+
+  // Remove the story
+  group.story = group.story.filter((s) => s._id.toString() !== storyId);
+  await group.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "✅ Story removed successfully"));
 });
 
 
@@ -200,13 +231,11 @@ const removeMember = asyncHandler(async (req, res) => {
   if (!group) throw new ApiError(404, "Group not found");
 
   // check if current user is owner
-  const isOwner = group.members.some(
-    (m) => m.user_id === req.user.user_id && m.role === "owner"
-  );
+  const isOwner =  group.createdBy.toString() === req.user.user_id.toString();
   if (!isOwner) throw new ApiError(403, "Only owner can remove members");
 
   // check if target member exists
-  const targetMember = group.members.find((m) => m.user_id === memberId);
+  const targetMember = group.members.find((m) => m.user_id.toString() === memberId.toString());
   if (!targetMember) throw new ApiError(404, "Member not found in this group");
 
   // prevent removing owner(s)
@@ -215,7 +244,7 @@ const removeMember = asyncHandler(async (req, res) => {
   }
 
   // remove member
-  group.members = group.members.filter((m) => m.user_id !== memberId);
+  group.members = group.members.filter((m) => m.user_id.toString() !== memberId.toString());
   await group.save();
 
   return res.status(200).json(
@@ -236,9 +265,7 @@ const deletePrivateGroup = asyncHandler(async (req, res) => {
   if (!group) throw new ApiError(404, "Group not found");
 
   // Check if current user is owner
-  const owner = group.members.find(
-    (m) => m.user_id === req.user.user_id && m.role === "owner"
-  );
+  const owner = group.createdBy.toString()===req.user.user_id.toString();
   if (!owner) throw new ApiError(403, "Only the owner can delete this group");
 
   await group.deleteOne();
@@ -260,9 +287,7 @@ const updatePrivateGroup = asyncHandler(async (req, res) => {
   if (!group) throw new ApiError(404, "Group not found");
 
   // Check if current user is owner
-  const owner = group.members.find(
-    (m) => m.user_id === req.user.user_id && m.role === "owner"
-  );
+  const owner = group.createdBy.toString() === req.user.user_id.toString();
   if (!owner) throw new ApiError(403, "Only the owner can update group details");
 
   // Update fields only if provided
@@ -287,7 +312,7 @@ const leavePrivateGroup = asyncHandler(async (req, res) => {
 
   // check if user is a member
   const memberIndex = group.members.findIndex(
-    (m) => m.user_id === req.user.user_id
+    (m) => m.user_id.toString() === req.user.user_id.toString()
   );
   if (memberIndex === -1) throw new ApiError(400, "You are not a member of this group");
 
@@ -345,6 +370,50 @@ const getGroupStories = asyncHandler(async (req, res) => {
   );
 });
 
+//---------------search private group-------
+
+const searchPrivateGroups = asyncHandler(async (req, res) => {
+  const { query } = req.body; // or req.query.search
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const userId = parseInt(req.user.user_id); // Ensure the userId is defined and converted to a number (assuming it comes from req.user)
+
+  if (!query || !query.trim()) {
+    throw new ApiError(400, "Search query is required");
+  }
+
+  const trimmedQuery = query.trim();
+
+  // Case-insensitive partial match on group name
+  const filter = {
+    "members.user_id": userId, // Correctly check for the user_id within the members array
+    name: new RegExp(trimmedQuery, 'i') // Perform case-insensitive search on the name field using RegExp
+  };
+
+  const total = await Privategroup.countDocuments(filter);
+
+  const groups = await Privategroup.find(filter)
+    .select("name description inviteCode createdBy members") // exclude heavy fields if needed
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 }) // most recently created first
+    .lean();
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      groups,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    }, "Groups fetched successfully")
+  );
+});
+
+
 export {
   createPrivateGroup,
   joinPrivateGroup,
@@ -355,5 +424,7 @@ export {
   deletePrivateGroup,
   updatePrivateGroup,
   leavePrivateGroup,
-  getGroupStories
+  getGroupStories,
+  removeGroupStory,
+  searchPrivateGroups
 };

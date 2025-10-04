@@ -7,7 +7,7 @@ import {
    addRootMember , 
    updateFamily ,
     removeMember , 
-    deleteFamily , 
+    deleteFamily  
 } from "../controllers/family.controller.js";
 
 import {getFamilyAncestorsAndDescendants } from "../controllers/FamilyTree.controller.js"
@@ -44,4 +44,7 @@ router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 router.get("/tree/:family_id", verifyJWT, getFamilyAncestorsAndDescendants);
 
 
+router.post("/join-family", verifyJWT, joinFamily);
+
+router.post("/leave-family/:family_id", verifyJWT, leaveMember);
 export default router;

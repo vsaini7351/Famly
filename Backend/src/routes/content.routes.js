@@ -22,7 +22,7 @@ const router = express.Router();
 // ✅ Static Routes First
 // --------------------
 router.post(
-  "/create-story",
+  "/create-story/:family_id",
   verifyJWT,
   upload.array("mediaFiles", 10), // Accept up to 10 files
   createStory

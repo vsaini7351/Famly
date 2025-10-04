@@ -4,19 +4,125 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
-import { Membership } from "../models/index.js";
+
+import natural from "natural";
+import sw from "stopword";
+
+const API_KEY = process.env.HUGGINGFACE_API_KEY;
+
+
+async function generateTagsFromText(text) {
+  if (!text) return [];
+
+  try {
+    // Prepare the request body for Hugging Face's NER model
+    const requestBody = {
+      inputs: text,
+    };
+
+    // Make the request to Hugging Face API using fetch
+    const response = await fetch('https://api-inference.huggingface.co/models/dbmdz/bert-large-cased-finetuned-conll03-english', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    // If the response status is not ok (i.e., not 200), return an empty array
+    if (!response.ok) {
+      console.error(`Hugging Face API error: ${response.statusText}`);
+      return [];  // Return empty array if the response is not successful
+    }
+
+    // Parse the response JSON
+    const data = await response.json();
+
+    // Extract tags from named entities (e.g., person, location, organization, etc.)
+    const tags = [];
+    data.forEach(entity => {
+      if (entity.entity_group) {
+        tags.push(entity.word.toLowerCase()); // Collecting the entities
+      }
+    });
+
+    // Return the tags
+    return tags;
+  } catch (err) {
+    // Log the error and return an empty array if something goes wrong
+    console.error("❌ Hugging Face NER error:", err);
+    return [];  // Return an empty array in case of error
+  }
+}
+
+
+
+async function generateTagsFromImage(url) {
+  try {
+    // Prepare the request body
+    const requestBody = {
+      inputs: { image: url },  // You can also pass a base64-encoded image if needed
+    };
+
+    // Make the request to Hugging Face API using fetch
+    const response = await fetch('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer $
+        {API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    // Parse the response JSON
+    const data = await response.json();
+
+    // Extract tags (labels) from the response
+    const tags = data[0].labels || [];
+    
+    // Clean and return the tags in lowercase
+    return tags.map(tag => tag.toLowerCase());
+  } catch (err) {
+    console.error("❌ Hugging Face image tagging error:", err);
+    return [];
+  }
+}
+
+
+
+function mergeTags(...tagArrays) {
+  return [...new Set(tagArrays.flat().map(t => t.toLowerCase()))];
+}
 
 const createStory = asyncHandler(async (req, res) => {
-  const { title, caption, family_id,memory_date,ai_tags } = req.body;
-  const uploaded_by = req.user.user_id; // from auth middleware
+  const { title, caption, memory_date } = req.body;
+  const family_id = Number(req.params.family_id);
+  const uploaded_by = Number(req.user.user_id); // from auth middleware
   const mediaFiles = req.files || []; // from multer
-  const mediaText = req.body.mediaText || []; // array of text for media
+  const mediaTextRaw = req.body.mediaText;
+  const mediaText = Array.isArray(mediaTextRaw)
+    ? mediaTextRaw
+    : mediaTextRaw
+    ? [mediaTextRaw]
+    : [];
+
 
   if (!title || !family_id) {
     throw new ApiError(400, "Title and family_id are required");
   }
 
-   let captionTags = [];
+  let allAITags = [];
+  const media = [];
+  let mediaIdx = 0;  // to track the index of mediaFiles for matching with mediaText
+
+  let captionTags = [];
   if (caption) {
     const regex = /#(\w+)/g;
     captionTags = [];
@@ -25,34 +131,60 @@ const createStory = asyncHandler(async (req, res) => {
       captionTags.push(match[1]);
     }
   }
-  const combinedTags = [
-    ...(Array.isArray(ai_tags) ? ai_tags : ai_tags ? [ai_tags] : []),
-    ...captionTags
-  ];
 
-  const normalizedTags = [...new Set(combinedTags.map(tag => tag.toLowerCase()))];
+  // GPT tags from caption
+  // const captionAITags = await generateTagsFromText(caption);
+  const captionAITags=[];
 
+  for (let i = 0; i < mediaText.length; i++) {
+    let mediaAITags = [];
+    let textForTags = "";
+    let textTags = [];
+    let uploadResponse = null;  // Initialize it here
 
-  const media = [];
+    if (!mediaText[i]) {
+      // Handle media file if mediaText[i] is empty
+      const file = mediaFiles[mediaIdx];
 
-  for (let i = 0; i < mediaFiles.length; i++) {
-    const file = mediaFiles[i];
-    let resourceType = "auto";
+      let resourceType = "auto";
+      if (file.mimetype.startsWith("image")) resourceType = "image";
+      if (file.mimetype.startsWith("video")) resourceType = "video";
+      if (file.mimetype.startsWith("audio")) resourceType = "video";
 
-    if (file.mimetype.startsWith("image")) resourceType = "image";
-    if (file.mimetype.startsWith("video")) resourceType = "video";
-    if (file.mimetype.startsWith("audio")) resourceType = "audio";
+      // Upload the media file to Cloudinary
+      uploadResponse = await uploadOnCloudinary(file.path, resourceType);
 
-    const uploadResponse = await uploadOnCloudinary(file.path, resourceType);
+      // Generate tags using OpenAI Vision (for images)
+      if (resourceType === "image") {
+        // mediaAITags = await generateTagsFromImage(uploadResponse.secure_url);
+        mediaAITags=[];
+      }
 
+      // Increment mediaIdx only for files
+      mediaIdx++;
+    } else {
+      // If mediaText[i] exists, generate semantic tags from text
+      textForTags = mediaText[i];
+      // textTags = await generateTagsFromText(textForTags);
+      textTags=[];
+    }
+
+    // Merge all tags (media, text, caption)
+    allAITags = mergeTags(allAITags, mediaAITags, textTags);
+
+    // Add the media or text to the media array
     media.push({
-      type: resourceType,
-      url: uploadResponse.secure_url,
-      text: mediaText[i] || "",
-      order: i
+      type: uploadResponse ? uploadResponse.resource_type : "text",  // If there is no uploadResponse, it's just text
+      url: uploadResponse ? uploadResponse.secure_url : null,  // Only assign URL if media is uploaded
+      text: mediaText[i] || "",  // Text for the media
+      order: i,
     });
   }
 
+  // Final merged tags (caption, media text, and AI-generated tags)
+  const finalTags = mergeTags(allAITags, captionTags, captionAITags);
+
+  // Create the story in the database
   const story = await Story.create({
     title,
     caption,
@@ -60,14 +192,12 @@ const createStory = asyncHandler(async (req, res) => {
     uploaded_by,
     media,
     memory_date,
-    tags:normalizedTags
+    tags: finalTags,
   });
 
- 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, story, "story uploaded successfully!"));
+  return res.status(200).json(new ApiResponse(200, story, "Story uploaded successfully!"));
 });
+
 
 const deleteStory = asyncHandler(async (req, res) => {
   const { storyId } = req.params;
@@ -393,13 +523,94 @@ const getUserRecentStories = asyncHandler(async (req, res) => {
   );
 });
 
+const extractTagsFromQuery = (query) => {
+  const tokenizer = new natural.WordTokenizer();
+  let words = tokenizer.tokenize(query);
 
+  // Lowercase
+  words = words.map((w) => w.toLowerCase());
 
+  // Remove stopwords
+  words = sw.removeStopwords(words);
 
+  // Remove duplicates
+  words = [...new Set(words)];
 
+  return words;
+};
 
+// --- Search Stories with Pagination ---
+ const searchStories = asyncHandler(async (req, res) => {
+  const family_id=parseInt(req.params.family_id)
+  const { query } = req.body; // or req.query.search
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  if (!query) {
+    throw new ApiError(400, "Search query is required");
+  }
+
+  // Step 1: Extract tags
+  const tags = extractTagsFromQuery(query);
+
+  if (!tags.length) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "No meaningful tags found"));
+  }
+
+  // Step 2: Aggregation with pagination
+  const pipeline = [
+    {
+      $match: {
+        family_id: Number(family_id),
+        tags: { $in: tags }, // must share at least one tag
+      },
+    },
+    {
+      $addFields: {
+        matchCount: { $size: { $setIntersection: ["$tags", tags] } },
+      },
+    },
+    {
+      $sort: { matchCount: -1, createdAt: -1 },
+    },
+    {
+      $facet: {
+        metadata: [
+          { $count: "total" },
+          {
+            $addFields: {
+              page,
+              limit,
+              totalPages: {
+                $ceil: { $divide: ["$total", limit] },
+              },
+            },
+          },
+        ],
+        data: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+  ];
+
+  const result = await Story.aggregate(pipeline);
+
+  const metadata = result[0].metadata[0] || {
+    total: 0,
+    page,
+    limit,
+    totalPages: 0,
+  };
+  const data = result[0].data;
+
+  return res.status(200).json(
+    new ApiResponse(200, { stories: data, metadata }, "Stories fetched successfully")
+  );
+});
 
 
 
 export {createStory,deleteStory,likeStory,unlikeStory,getFamilyStoriesAsc,
-  getFamilyStoriesDesc,updateStory,getStory,getRecentStories,getUserRecentStories}
+  getFamilyStoriesDesc,updateStory,getStory,getRecentStories,getUserRecentStories,searchStories}

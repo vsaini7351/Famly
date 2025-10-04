@@ -1,4 +1,4 @@
-import { Notification } from "../models/notification.model.js"; // Mongo (Mongoose)
+import { Notification } from "../models/notification.models.js"; // Mongo (Mongoose)
 // import User from "../models/user.model.js"; // Postgres (Sequelize)
 // import Family from "../models/family.model.js"; // Postgres (Sequelize)
 import {User, Family,Membership } from "../models/index.js"
@@ -11,6 +11,7 @@ import { Op } from "sequelize";
 
 // ========== CREATE NOTIFICATION (manual) ==========
 const createNotification = asyncHandler(async (req, res) => {
+    console.log(req.body)
   const { type, title, message, meta, expiresAt } = req.body;
 
   const userId = Number(req.user.user_id)
@@ -241,28 +242,28 @@ const generateAnniversaryNotifications = asyncHandler(async (req, res) => {
   );
 });
 
+//vansh check it out
+// ========== CREATE MILESTONE NOTIFICATION ========== //
+// const createMilestoneNotification = asyncHandler(async (req, res) => {
+//   const { userId, milestoneName, message } = req.body;
 
-// ========== CREATE MILESTONE NOTIFICATION ==========
-const createMilestoneNotification = asyncHandler(async (req, res) => {
-  const { userId, milestoneName, message } = req.body;
+//   if (!userId || !milestoneName || !message) {
+//     throw new ApiError(400, "userId, milestoneName and message are required");
+//   }
 
-  if (!userId || !milestoneName || !message) {
-    throw new ApiError(400, "userId, milestoneName and message are required");
-  }
+//   const notif = await Notification.create({
+//     userId,
+//     type: "milestone",
+//     title: milestoneName,
+//     message,
+//     status: "unread",
+//     meta: { milestoneName }
+//   });
 
-  const notif = await Notification.create({
-    userId,
-    type: "milestone",
-    title: milestoneName,
-    message,
-    status: "unread",
-    meta: { milestoneName }
-  });
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, notif, " Milestone notification created"));
-});
+//   return res
+//     .status(201)
+//     .json(new ApiResponse(201, notif, " Milestone notification created"));
+// });
 
 
 // ========== GET USER NOTIFICATIONS ==========
@@ -345,7 +346,7 @@ export {
   createNotification,
   generateBirthdayNotifications,
   generateAnniversaryNotifications,
-  createMilestoneNotification,
+  
   getUserNotifications,
   markAsRead,
   markAllAsRead,

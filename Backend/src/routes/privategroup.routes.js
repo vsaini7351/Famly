@@ -5,27 +5,59 @@ import {
   joinPrivateGroup,
   getMyPrivateGroups,
   addGroupStory,
+  getGroupStories,
   getGroupDetails,
   removeMember,
-  deletePrivateGroup,
+  leavePrivateGroup,
   updatePrivateGroup,
-  leavePrivateGroup
+  deletePrivateGroup,
+  removeGroupStory,
+  searchPrivateGroups
 } from "../controllers/privategroup.controller.js";
 
+import { upload } from "../middlewares/multer.middleware.js";
 const router = Router();
 
-router.post("/private/create", verifyJWT, createPrivateGroup);
-router.post("/private/join", verifyJWT, joinPrivateGroup);
-router.get("/private/my-groups", verifyJWT, getMyPrivateGroups);
-router.post("/private/:groupId/story", verifyJWT, addGroupStory);
-router.get("/private/:groupId", verifyJWT, getGroupDetails);
-router.delete("/private/:groupId/members/:memberId", verifyJWT, removeMember);
-router.delete("/private/:groupId", verifyJWT, deletePrivateGroup);
+// ---------------- GROUP ROUTES ---------------- //
+
+// Create a group
+router.post("/create", verifyJWT, createPrivateGroup);
+
+// Join a group using inviteCode
+router.post("/join", verifyJWT, joinPrivateGroup);
+
+// Get all groups where logged-in user is a member
+router.get("/my", verifyJWT, getMyPrivateGroups);
+
+// Get group details
+router.get("/:groupId", verifyJWT, getGroupDetails);
 
 // Update group details (owner only)
-router.patch("/private/:groupId", verifyJWT, updatePrivateGroup);
+router.patch("/:groupId", verifyJWT, updatePrivateGroup);
+
+// Delete a group (owner only)
+router.delete("/:groupId", verifyJWT, deletePrivateGroup);
+
+// ---------------- MEMBER ROUTES ---------------- //
+
+
+// Remove a member (owner only)
+router.delete("/:groupId/members", verifyJWT, removeMember);
 
 // Leave group (for members)
-router.post("/private/:groupId/leave", verifyJWT, leavePrivateGroup);
+router.delete("/:groupId/members/me", verifyJWT, leavePrivateGroup);
+
+
+
+// ---------------- STORY ROUTES ---------------- //
+
+// Add a new story to group
+router.post("/:groupId/stories", verifyJWT,upload.single("file"),  addGroupStory);
+
+// Get stories with pagination
+router.get("/:groupId/stories", verifyJWT, getGroupStories);
+
+router.delete("/:groupId/stories/:storyId",verifyJWT,removeGroupStory);
+router.get("/search",verifyJWT,searchPrivateGroups)
 
 export default router;
