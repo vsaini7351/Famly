@@ -1,69 +1,63 @@
 import mongoose, { Schema } from "mongoose";
 
-// Private group schema
 const privategroupSchema = new Schema({
-   
-    name: {
-        type: String,
-        required: true,
-        trim: true
-    },
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
 
-    description: {
-        type: String,
-        trim: true
-    },
-    inviteCode: {
-        type: String,
-        unique: true,   // no two groups have the same code
-        index: true     // quick lookup when joining
-    },
+  description: {
+    type: String,
+    trim: true
+  },
 
-    isPrivate: {
-        type: Boolean,
-        default: true
-    },
+  inviteCode: {
+    type: String,
+    unique: true,
+    index: true
+  },
 
-    createdBy: {
-        type: Number,
+  isPrivate: {
+    type: Boolean,
+    default: true
+  },
+
+  createdBy: {
+    type: Number, // PostgreSQL user_id
+    required: true
+  },
+
+  members: [
+    {
+      _id: false,
+      user_id: { type: Number, required: true }, // Postgres ID
+      role: {
+        type: String,
+        enum: ["owner", "member"],
+        default: "member"
+      },
+      joinedAt: { type: Date, default: Date.now }
+    }
+  ],
+
+  story: [
+    {
+      contentType: {
+        type: String,
+        enum: ["text", "image", "video", "audio", "file"],
         required: true
-    },
-
-    members: [
-        {
-        user_id:{
-            type: Number,
-            required: true
-        },
-        role: {
-            type: String,
-            enum: ["owner", "member"],
-            default: "member"
-        },
-        joinedAt: { 
-            type: Date, 
-            default: Date.now 
-        }
-        }
-    ],
-
-    story: [{
-        type: {
-            type: String,
-            enum: ["text", "image", "video", "audio", "file"],
-            required: true
-        },
-        text: String,
-        url: String,   
-        mimeType: String,
-        size: Number,
-        createdBy: { 
-            type: Number,
-            required: true
-        },
-        
-    }]
+      },
+      text: String,
+      url: String,
+      mimeType: String,
+      size: Number,
+      createdBy: { type: Number, required: true }
+    }
+  ]
 }, { timestamps: true });
 
+// Helpful index: find groups by member
+privategroupSchema.index({ "members.user_id": 1 });
 
 export const Privategroup = mongoose.model("Privategroup", privategroupSchema);

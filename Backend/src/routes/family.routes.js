@@ -7,7 +7,9 @@ import {
    addRootMember , 
    updateFamily ,
     removeMember , 
-    deleteFamily  
+    deleteFamily ,
+    leaveMember,
+    joinFamily
 } from "../controllers/family.controller.js";
 
 import { upload } from "../middlewares/multer.middleware.js";
@@ -39,4 +41,7 @@ router.delete("/remove-member/:family_id", verifyJWT, removeMember);
 // Delete a family
 router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 
+router.post("/join-family", verifyJWT, joinFamily);
+
+router.post("/leave-family/:family_id", verifyJWT, leaveMember);
 export default router;
