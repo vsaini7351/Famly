@@ -11,7 +11,8 @@ import {
   leavePrivateGroup,
   updatePrivateGroup,
   deletePrivateGroup,
-  removeGroupStory
+  removeGroupStory,
+  searchPrivateGroups
 } from "../controllers/privategroup.controller.js";
 
 import { upload } from "../middlewares/multer.middleware.js";
@@ -57,5 +58,6 @@ router.post("/:groupId/stories", verifyJWT,upload.single("file"),  addGroupStory
 router.get("/:groupId/stories", verifyJWT, getGroupStories);
 
 router.delete("/:groupId/stories/:storyId",verifyJWT,removeGroupStory);
+router.get("/search",verifyJWT,searchPrivateGroups)
 
 export default router;
