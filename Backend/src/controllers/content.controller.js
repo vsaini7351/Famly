@@ -533,10 +533,13 @@ const extractTagsFromQuery = (query) => {
   return words;
 };
 
+
+
+
 // --- Search Stories with Pagination ---
  const searchStories = asyncHandler(async (req, res) => {
   const family_id=parseInt(req.params.family_id)
-  const { query } = req.body; // or req.query.search
+  const query = req.query.query // or req.query.search
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
