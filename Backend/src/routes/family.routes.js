@@ -7,7 +7,9 @@ import {
    addRootMember , 
    updateFamily ,
     removeMember , 
-    deleteFamily  
+    deleteFamily ,
+    joinFamily,
+    leaveMember 
 } from "../controllers/family.controller.js";
 
 import {getFamilyAncestorsAndDescendants } from "../controllers/FamilyTree.controller.js"

@@ -11,6 +11,7 @@ import {
   getStory,
   getRecentStories,
   getUserRecentStories,
+  searchStories,
 } from "../controllers/content.controller.js";
 
 import { upload } from "../middlewares/multer.middleware.js";
@@ -44,5 +45,7 @@ router.put("/update/:storyId", verifyJWT, updateStory);
 // ❗️Dynamic Route Last
 // --------------------
 router.get("/:storyId", verifyJWT, getStory);
+
+router.get("/search/:family_id",searchStories)
 
 export default router;
