@@ -7,7 +7,11 @@ class Membership extends Model {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         family_id: { type: DataTypes.INTEGER, allowNull: false },
         user_id: { type: DataTypes.INTEGER, allowNull: false },
-        role: { type: DataTypes.STRING, allowNull: false, defaultValue: "member" },
+        role: { 
+               type: DataTypes.ENUM("member", "admin"), 
+                allowNull: false, 
+                defaultValue: "member" 
+              },
         joined_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       },
       {

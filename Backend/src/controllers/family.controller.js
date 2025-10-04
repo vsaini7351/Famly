@@ -19,7 +19,7 @@ const createFamily = asyncHandler(async (req, res) => {
   const { family_name, marriage_date, description } = req.body;
 
   // Get the user creating the family
-  const user = await User.findByPk(req.user.user_id);
+  const user = await User.findByPk(Number(req.user.user._id));
   if (!user) throw new ApiError(404, "User not found");
 
   // Check if the user is already a root member in any family
@@ -113,8 +113,9 @@ const getFamily = asyncHandler(async (req, res) => {
 });
 
 const addMember = asyncHandler(async (req, res) => {
-const { family_id } = req.params;
-  const {user_id } = req.body;
+const family_id = Number(req.params.family_id);
+const user_id = Number(req.body.user_id);
+
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -169,11 +170,11 @@ const { family_id } = req.params;
 });
 
 const addRootMember = asyncHandler(async (req, res) => {
-  const { user_id: targetUserId } = req.body;
+  const targetUserId = Number(req.body.user_id);
   if (!targetUserId) throw new ApiError(400, "user_id is required");
 
   // Get current user
-  const currentUser = await User.findByPk(req.user.user_id);
+  const currentUser = await User.findByPk(Number(req.user.user._id));
   if (!currentUser) throw new ApiError(404, "Current user not found");
 
   // Get target user
@@ -237,7 +238,7 @@ const addRootMember = asyncHandler(async (req, res) => {
 });
 
 const updateFamily = asyncHandler(async (req, res) => {
-  const { family_id } = req.params; // family ID from route params
+  const family_id = Number(req.params.family_id); // family ID from route params
   const { family_name, marriage_date, description } = req.body;
 
   // Fetch family
@@ -245,7 +246,7 @@ const updateFamily = asyncHandler(async (req, res) => {
   if (!family) throw new ApiError(404, "Family not found");
 
   // Check if the user is one of the root members
-  const userId = req.user.user_id;
+  const userId = Number(req.user.user._id);
   if (family.male_root_member !== userId && family.female_root_member !== userId) {
     throw new ApiError(403, "Only root members can update family details");
   }
@@ -276,8 +277,9 @@ const updateFamily = asyncHandler(async (req, res) => {
 });
 
 const removeMember = asyncHandler(async (req, res) => {
- const { family_id } = req.params;
-  const {user_id } = req.body;
+const family_id = Number(req.params.family_id);
+const user_id = Number(req.body.user_id);
+
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -288,7 +290,7 @@ const removeMember = asyncHandler(async (req, res) => {
   if (!family) throw new ApiError(404, "Family not found");
 
   // Check if requester is a root member
-  const currentUserId = req.user.user_id;
+  const currentUserId = Number(req.user.user._id);
   if (family.male_root_member !== currentUserId && family.female_root_member !== currentUserId) {
     throw new ApiError(403, "Only root members can remove members from this family");
   }
@@ -332,8 +334,8 @@ const removeMember = asyncHandler(async (req, res) => {
 });
 
 const leaveMember = asyncHandler(async (req, res) => {
- const { family_id } = req.params;
-  const user_id= req.user.user_id;
+ const family_id = Number(req.params.family_id);
+  const user_id= Number(req.user.user._id);
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -383,7 +385,7 @@ const leaveMember = asyncHandler(async (req, res) => {
 });
 
 const deleteFamily = asyncHandler(async (req, res) => {
-  const { family_id } = req.params;
+  const family_id = Number(req.params.family_id);
 
   if (!family_id) throw new ApiError(400, "family_id is required");
 
@@ -391,7 +393,7 @@ const deleteFamily = asyncHandler(async (req, res) => {
   const family = await Family.findByPk(family_id);
   if (!family) throw new ApiError(404, "Family not found");
 
-  const currentUserId = req.user.user_id;
+  const currentUserId = Number(req.user.user._id);
 
   // Only root members can delete
   if (family.male_root_member !== currentUserId && family.female_root_member !== currentUserId) {
@@ -418,6 +420,68 @@ const deleteFamily = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Family deleted successfully"));
 });
 
-export { createFamily , getFamily , addMember , addRootMember , updateFamily , removeMember , deleteFamily , generateInvitationCode,leaveMember };
+const joinFamily = asyncHandler(async (req, res) => {
+  const { invitation_code } = req.body;
+  const user_id = Number(req.user.user._id);
+
+  if (!invitation_code) {
+    throw new ApiError(400, "Invitation code is required");
+  }
+
+  // Check if family exists
+  const family = await Family.findOne({ where: { invitation_code } });
+  if (!family) throw new ApiError(404, "Invalid invitation code or family not found");
+
+  // Check if user exists
+  const user = await User.findByPk(user_id);
+  if (!user) throw new ApiError(404, "User not found");
+
+  // Check if user already belongs to another family
+  if (user.parent_family !== null) {
+    throw new ApiError(400, "You already belong to another family and cannot join");
+  }
+
+  // Check if user is already a member of this family
+  const existingMembership = await Membership.findOne({
+    where: { family_id: family.family_id, user_id },
+  });
+  if (existingMembership) {
+    throw new ApiError(400, "You are already a member of this family");
+  }
+
+  // Create membership
+  const membership = await Membership.create({
+    family_id: family.family_id,
+    user_id,
+    role: "member",
+  });
+
+  // Update user's parent_family
+  user.parent_family = family.family_id;
+  await user.save();
+
+  // If user is male → update ancestor of other families where he is root
+  if (user.gender.toLowerCase() === "male") {
+    const maleRootFamilies = await Family.findAll({
+      where: { male_root_member: user.user_id },
+    });
+
+    for (const f of maleRootFamilies) {
+      f.ancestor = family.family_id;
+      await f.save();
+    }
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      { family, membership },
+      "Joined family successfully"
+    )
+  );
+});
+
+
+export { createFamily , getFamily , addMember , addRootMember , updateFamily , removeMember , deleteFamily , generateInvitationCode,leaveMember ,joinFamily};
 
 
