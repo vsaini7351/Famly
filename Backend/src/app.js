@@ -47,7 +47,10 @@ app.use("/api/v1/content" , contentRouter);
 import privateGrouprouter from './routes/privategroup.routes.js'
 app.use("/api/v1/private-group",privateGrouprouter )
 
+import Generatenotification from "./routes/notification.routes.js"
+app.use("/api/v1", Generatenotification)
 //////// To be removed
+
 
 // test Postgres connection
 app.get('/ping-postgres', async (req, res) => {
