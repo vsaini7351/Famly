@@ -370,6 +370,50 @@ const getGroupStories = asyncHandler(async (req, res) => {
   );
 });
 
+//---------------search private group-------
+
+const searchPrivateGroups = asyncHandler(async (req, res) => {
+  const { query } = req.body; // or req.query.search
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const userId = parseInt(req.user.user_id); // Ensure the userId is defined and converted to a number (assuming it comes from req.user)
+
+  if (!query || !query.trim()) {
+    throw new ApiError(400, "Search query is required");
+  }
+
+  const trimmedQuery = query.trim();
+
+  // Case-insensitive partial match on group name
+  const filter = {
+    "members.user_id": userId, // Correctly check for the user_id within the members array
+    name: new RegExp(trimmedQuery, 'i') // Perform case-insensitive search on the name field using RegExp
+  };
+
+  const total = await Privategroup.countDocuments(filter);
+
+  const groups = await Privategroup.find(filter)
+    .select("name description inviteCode createdBy members") // exclude heavy fields if needed
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 }) // most recently created first
+    .lean();
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      groups,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    }, "Groups fetched successfully")
+  );
+});
+
+
 export {
   createPrivateGroup,
   joinPrivateGroup,
@@ -381,5 +425,6 @@ export {
   updatePrivateGroup,
   leavePrivateGroup,
   getGroupStories,
-  removeGroupStory
+  removeGroupStory,
+  searchPrivateGroups
 };

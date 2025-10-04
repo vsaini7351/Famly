@@ -19,7 +19,7 @@ const createFamily = asyncHandler(async (req, res) => {
   const { family_name, marriage_date, description } = req.body;
 
   // Get the user creating the family
-  const user = await User.findByPk(Number(req.user.user._id));
+  const user = await User.findByPk(Number(req.user.user_id));
   if (!user) throw new ApiError(404, "User not found");
 
   // Check if the user is already a root member in any family
