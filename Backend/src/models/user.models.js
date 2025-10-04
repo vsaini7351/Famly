@@ -2,7 +2,7 @@ import { DataTypes, Model } from "sequelize";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-class User extends Model {
+export class User extends Model {
   static initModel(sequelize) {
     User.init(
       {

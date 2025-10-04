@@ -47,6 +47,15 @@ app.use("/api/v1/content" , contentRouter);
 import privateGrouprouter from './routes/privategroup.routes.js'
 app.use("/api/v1/private-group",privateGrouprouter )
 
+
+
+
+import pdfRoutes from "./routes/pdf.routes.js"
+
+app.use("/api/v1/pdf",pdfRoutes);
+
+
+
 import Generatenotification from "./routes/notification.routes.js"
 app.use("/api/v1", Generatenotification)
 //////// To be removed
