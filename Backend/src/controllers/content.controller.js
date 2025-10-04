@@ -237,8 +237,6 @@ const deleteStory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, deletedStory, "Story deleted successfully!"));
 });
 
-
-
  const likeStory = asyncHandler(async (req ,  res) => {
   const { storyId } = req.params;
 
@@ -285,7 +283,6 @@ const unlikeStory = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, story, "Story unliked successfully!"));
 });
-
 // fetching  family story acccording to memory date
 const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
@@ -316,8 +313,6 @@ const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
     }, "Stories fetched in ascending order")
   );
 });
-
-
 // fetching family stroies according to recent uploaded date
 const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
@@ -493,7 +488,6 @@ const getRecentStories = asyncHandler(async (req, res) => {
     }, "Recent stories fetched successfully")
   );
 });
-
 // fetching all user stories 
 const getUserRecentStories = asyncHandler(async (req, res) => {
   const userId = req.user.user_id; // from auth middleware
@@ -542,7 +536,7 @@ const extractTagsFromQuery = (query) => {
 // --- Search Stories with Pagination ---
  const searchStories = asyncHandler(async (req, res) => {
   const family_id=parseInt(req.params.family_id)
-  const { query } = req.body; // or req.query.search
+  const  query  = req.query.query; // or req.query.search
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;

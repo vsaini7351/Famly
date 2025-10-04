@@ -46,6 +46,6 @@ router.put("/update/:storyId", verifyJWT, updateStory);
 // --------------------
 router.get("/:storyId", verifyJWT, getStory);
 
-router.get("/search/:family_id",searchStories)
+router.get("/:family_id/search",searchStories)
 
 export default router;
