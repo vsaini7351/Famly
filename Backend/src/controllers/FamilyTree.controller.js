@@ -148,59 +148,65 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
       return res.status(400).json({ error: "familyId required" });
     }
 
-    // 1) Ancestors query (positive depth, limited to 5)
-    const ancestorQuery = `
-      WITH RECURSIVE ancestors AS (
-        SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, 0 AS depth, ARRAY[f.family_id] AS path
-        FROM families f
-        WHERE f.family_id = :familyId
+   // inside getFamilyAncestorsAndDescendants
 
-        UNION ALL
+// get offset (how many groups of 4 already loaded)
+const ancestorOffset = Number(req.query.ancestorOffset ?? 0); 
+const descendantOffset = Number(req.query.descendantOffset ?? 0);
 
-        SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, a.depth + 1, a.path || f.family_id
-        FROM families f
-        JOIN ancestors a ON f.family_id = a.ancestor
-        WHERE NOT f.family_id = ANY(a.path)
-          AND a.depth < 5
-      )
-      SELECT family_id, family_name, "familyPhoto", depth
-      FROM ancestors
-      WHERE depth > 0
-      ORDER BY depth ASC
-      LIMIT 5;
-    `;
+// 1) Ancestors query (fetch 4 at a time based on offset)
+const ancestorQuery = `
+  WITH RECURSIVE ancestors AS (
+    SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, 0 AS depth, ARRAY[f.family_id] AS path
+    FROM families f
+    WHERE f.family_id = :familyId
 
-    // 2) Descendants query (negative depth, limited to -5)
-    const descendantQuery = `
-      WITH RECURSIVE descendants AS (
-        SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, 0 AS depth, ARRAY[f.family_id] AS path
-        FROM families f
-        WHERE f.family_id = :familyId
+    UNION ALL
 
-        UNION ALL
+    SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, a.depth + 1, a.path || f.family_id
+    FROM families f
+    JOIN ancestors a ON f.family_id = a.ancestor
+    WHERE NOT f.family_id = ANY(a.path)
+  )
+  SELECT family_id, family_name, "familyPhoto", depth
+  FROM ancestors
+  WHERE depth > 0
+  ORDER BY depth ASC
+  OFFSET :ancestorOffset * 4
+  LIMIT 4;
+`;
 
-        SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, d.depth - 1, d.path || f.family_id
-        FROM families f
-        JOIN descendants d ON f.ancestor = d.family_id
-        WHERE NOT f.family_id = ANY(d.path)
-          AND d.depth > -5
-      )
-      SELECT family_id, family_name, "familyPhoto", depth
-      FROM descendants
-      WHERE depth < 0
-      ORDER BY depth DESC
-      LIMIT 5;
-    `;
+// 2) Descendants query (fetch 4 at a time based on offset)
+const descendantQuery = `
+  WITH RECURSIVE descendants AS (
+    SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, 0 AS depth, ARRAY[f.family_id] AS path
+    FROM families f
+    WHERE f.family_id = :familyId
 
-    const ancestors = await sequelize.query(ancestorQuery, {
-      replacements: { familyId },
-      type: QueryTypes.SELECT,
-    });
+    UNION ALL
 
-    const descendants = await sequelize.query(descendantQuery, {
-      replacements: { familyId },
-      type: QueryTypes.SELECT,
-    });
+    SELECT f.family_id, f.family_name, f."familyPhoto", f.ancestor, d.depth - 1, d.path || f.family_id
+    FROM families f
+    JOIN descendants d ON f.ancestor = d.family_id
+    WHERE NOT f.family_id = ANY(d.path)
+  )
+  SELECT family_id, family_name, "familyPhoto", depth
+  FROM descendants
+  WHERE depth < 0
+  ORDER BY depth DESC
+  OFFSET :descendantOffset * 4
+  LIMIT 4;
+`;
+
+const ancestors = await sequelize.query(ancestorQuery, {
+  replacements: { familyId, ancestorOffset },
+  type: QueryTypes.SELECT,
+});
+
+const descendants = await sequelize.query(descendantQuery, {
+  replacements: { familyId, descendantOffset },
+  type: QueryTypes.SELECT,
+});
 
     // 3) Fetch current family info
     const [currentFamily] = await sequelize.query(
@@ -226,16 +232,17 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
     if (familiesToFetch.length > 0) {
       members = await sequelize.query(
         `
-        SELECT m.family_id, u.user_id, u.fullname AS name, u."profilePhoto"
-        FROM memberships m
-        JOIN users u ON u.user_id = m.user_id
-        WHERE m.family_id = ANY(:familyIds)
-        `,
+  SELECT m.family_id, u.user_id, u.fullname AS name, u."profilePhoto"
+  FROM memberships m
+  JOIN users u ON u.user_id = m.user_id
+  WHERE m.family_id = ANY(ARRAY[:familyIds]::int[])
+  `,
         {
           replacements: { familyIds: familiesToFetch },
           type: QueryTypes.SELECT,
         }
       );
+
     }
 
     // 5) Group members by family

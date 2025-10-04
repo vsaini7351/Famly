@@ -41,7 +41,7 @@ router.delete("/remove-member/:family_id", verifyJWT, removeMember);
 router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 
 
-router.post("/tree/:family_id", verifyJWT, getFamilyAncestorsAndDescendants);
+router.get("/tree/:family_id", verifyJWT, getFamilyAncestorsAndDescendants);
 
 
 export default router;
