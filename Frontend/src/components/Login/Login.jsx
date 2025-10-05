@@ -76,7 +76,7 @@ const AuthCard = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-50 to-white p-4">
+    
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -281,7 +281,7 @@ const AuthCard = () => {
           </>
         )}
       </motion.div>
-    </div>
+    
   );
 };
 
