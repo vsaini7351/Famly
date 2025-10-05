@@ -16,6 +16,7 @@ const menuItems = [
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
+  { name:"Overview", components: <Overview/>}
 ];
 
 export default function DashboardLayout() {
