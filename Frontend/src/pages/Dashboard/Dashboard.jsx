@@ -7,6 +7,7 @@ import FamilyTree from "../../components/DashboardComponents/FamilyTree";
 import Search from "../../components/DashboardComponents/Search";
 import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
+import Overview from "../../components/DashboardComponents/Overview";
 
 const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
@@ -22,6 +23,8 @@ const menuItems = [
 export default function DashboardLayout() {
   const [selectedComponent, setSelectedComponent] = useState(<FamilyCircles />);
 
+  console.log("✅ Overview component mounted");
+  
   return (
     <div className="flex h-screen">
       {/* Sidebar */}

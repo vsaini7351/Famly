@@ -3,18 +3,20 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../utils/authContext"; // adjust if in another folder
 import api from "../../utils/axios";
 
-export default function Overview() {
+ const Overview=()=> {
   const { auth } = useAuth();
   const user = auth?.user;
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("user not present ")
     if (!user?.user_id) return;
 
     const fetchProfile = async () => {
       try {
         const res = await api.get(`/user/${user.user_id}/profile`);
+        console.log(res.data.data)
         setProfileData(res.data.data);
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -40,6 +42,7 @@ export default function Overview() {
   return (
     <div className="p-6 bg-purple-50 min-h-screen">
       {/* Top Welcome Section */}
+     
       <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white p-6 rounded-2xl flex justify-between items-center shadow-md">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -74,3 +77,5 @@ export default function Overview() {
     </div>
   );
 }
+
+export default Overview
