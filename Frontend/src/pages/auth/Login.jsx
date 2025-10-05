@@ -1,10 +1,18 @@
 import React from "react";
 import famlyLogo from "../../assets/famly-logo.png"; // adjust filename
 import AuthCard from "../../components/Login/Login";
-
+import bgLoginImage from "../../assets/bg-login-image.png";
 const AuthPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center relative bg-gradient-to-br from-[#f8f0ff] via-[#f2e9ff] to-[#f8f0ff]">
+   <div
+    className="min-h-screen flex items-center justify-center relative bg-gradient-to-br from-[#f8f0ff] via-[#f2e9ff] to-[#f8f0ff]"
+    style={{
+      backgroundImage: `url(${bgLoginImage})`,
+      backgroundRepeat: 'no-repeat',       // prevent repetition
+      backgroundSize: 'cover',             // cover the entire container
+      backgroundPosition: 'center',        // center the image
+    }}
+    >
       {/* Subtle background blur gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#d6b1ff]/40 to-[#a389ff]/30 blur-3xl" />
 
