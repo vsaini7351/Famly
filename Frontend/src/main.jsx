@@ -11,12 +11,12 @@ import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 const router=createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement>
-
       <Route index element={<Home/>} />
       <Route path='auth' element={<AuthPage/>} />
       <Route path='dashboard' element={<DashboardLayout/>} />
 
     </Route>
+
   )
 )
 

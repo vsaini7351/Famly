@@ -9,11 +9,12 @@ import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
 
+
 const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
   { name: "Add Memory", component: <AddMemory /> },
   { name: "Timeline", component: <Timeline /> },
-  { name: "Family Tree", component: <FamilyTree /> },
+  { name: "Family Tree", component: <FamilyTree familyId={2}/> },
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },

@@ -29,6 +29,11 @@ router.post(
 );
 
 
+router.get("/recent-story", verifyJWT, getRecentStories);
+
+
+router.get("/timeline-story", verifyJWT, getUserRecentStories);
+
 router.delete("/delete/:storyId", verifyJWT, deleteStory);
 
 
@@ -45,11 +50,6 @@ router.put("/update/:storyId", verifyJWT, updateStory);
 router.get("/family/:familyId/asc", verifyJWT, getFamilyStoriesAsc);
 router.get("/family/:familyId/desc", verifyJWT, getFamilyStoriesDesc);
 
-
-router.get("/recent-story", verifyJWT, getRecentStories);
-
-
-router.get("/timeline-story", verifyJWT, getUserRecentStories);
 // router.get("/:family_id/search")
 
 
