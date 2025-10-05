@@ -14,6 +14,8 @@ const router=createBrowserRouter(
 
       <Route index element={<Home/>} />
       <Route path='auth' element={<AuthPage/>} />
+      <Route path='dashboard' element={<DashboardLayout/>} />
+
     </Route>
   )
 )

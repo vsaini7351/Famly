@@ -50,6 +50,6 @@ router.get("/recent-story", verifyJWT, getRecentStories);
 
 
 router.get("/timeline-story", verifyJWT, getUserRecentStories);
-router.get("/:family_id/search")
+//router.get("/:family_id/search")
 
 export default router;
