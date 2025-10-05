@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 
 import natural from "natural";
 import sw from "stopword";
-
+import { User } from '../models/user.models.js'
 const API_KEY = process.env.HUGGINGFACE_API_KEY;
 
 
@@ -284,6 +284,36 @@ const unlikeStory = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, story, "Story unliked successfully!"));
 });
 // fetching  family story acccording to memory date
+// const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
+//   const { familyId } = req.params;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const page = parseInt(req.query.page) || 1;
+
+//   if (!familyId) throw new ApiError(400, "Family ID is required");
+
+//   // Convert familyId to integer
+//   const familyIdNum = parseInt(familyId);
+
+//   const stories = await Story.find({ family_id: familyIdNum })
+//     .sort({ memory_date: 1 }) // ascending
+//     .skip((page - 1) * limit)
+//     .limit(limit);
+
+//   const total = await Story.countDocuments({ family_id: familyIdNum });
+
+//   return res.status(200).json(
+//     new ApiResponse(200, {
+//       stories,
+//       pagination: {
+//         total,
+//         page,
+//         limit,
+//         totalPages: Math.ceil(total / limit),
+//       },
+//     }, "Stories fetched in ascending order")
+//   );
+// });
+// fetching family stories according to recent uploaded date
 const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
   const limit = parseInt(req.query.limit) || 10;
@@ -291,29 +321,55 @@ const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
 
   if (!familyId) throw new ApiError(400, "Family ID is required");
 
-  // Convert familyId to integer
-  const familyIdNum = parseInt(familyId);
-
-  const stories = await Story.find({ family_id: familyIdNum })
-    .sort({ memory_date: 1 }) // ascending
+  // Fetch stories from MongoDB
+  const stories = await Story.find({ family_id: Number(familyId) })
+    .sort({ memory_date: 1 })
     .skip((page - 1) * limit)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
-  const total = await Story.countDocuments({ family_id: familyIdNum });
+  const total = await Story.countDocuments({ family_id: Number(familyId) });
+
+  // 1️⃣ Collect unique user_ids from stories
+  const userIds = [...new Set(stories.map(s => s.uploaded_by))];
+
+  // 2️⃣ Fetch users from PostgreSQL
+  const users = await User.findAll({
+    where: { user_id: userIds },
+    attributes: ["user_id", "fullname"],
+    raw: true,
+  });
+
+  // Convert users to a lookup map
+  const userMap = {};
+  users.forEach(u => {
+    userMap[u.user_id] = u.fullname;
+  });
+
+  // 3️⃣ Merge user fullname into stories
+  const enrichedStories = stories.map(story => ({
+    ...story,
+    uploaded_by: {
+      user_id: story.uploaded_by,
+      fullname: userMap[story.uploaded_by] || "Unknown User",
+    },
+  }));
 
   return res.status(200).json(
     new ApiResponse(200, {
-      stories,
+      stories: enrichedStories,
       pagination: {
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    }, "Stories fetched in ascending order")
+    }, "Stories fetched with uploader names")
   );
 });
+
 // fetching family stroies according to recent uploaded date
+
 const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
   const limit = parseInt(req.query.limit) || 10;
@@ -321,25 +377,78 @@ const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
 
   if (!familyId) throw new ApiError(400, "Family ID is required");
 
-  const stories = await Story.find({ family_id: familyId })
-    .sort({ createdAt: -1 }) // descending
+  // Fetch stories from MongoDB
+  const stories = await Story.find({ family_id: Number(familyId) })
+    .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
-  const total = await Story.countDocuments({ family_id: familyId });
+  const total = await Story.countDocuments({ family_id: Number(familyId) });
+
+  // 1️⃣ Collect unique user_ids from stories
+  const userIds = [...new Set(stories.map(s => s.uploaded_by))];
+
+  // 2️⃣ Fetch users from PostgreSQL
+  const users = await User.findAll({
+    where: { user_id: userIds },
+    attributes: ["user_id", "fullname"],
+    raw: true,
+  });
+
+  // Convert users to a lookup map
+  const userMap = {};
+  users.forEach(u => {
+    userMap[u.user_id] = u.fullname;
+  });
+
+  // 3️⃣ Merge user fullname into stories
+  const enrichedStories = stories.map(story => ({
+    ...story,
+    uploaded_by: {
+      user_id: story.uploaded_by,
+      fullname: userMap[story.uploaded_by] || "Unknown User",
+    },
+  }));
 
   return res.status(200).json(
     new ApiResponse(200, {
-      stories,
+      stories: enrichedStories,
       pagination: {
         total,
         page,
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    }, "Stories fetched in descending order")
+    }, "Stories fetched with uploader names")
   );
 });
+// const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
+//   const { familyId } = req.params;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const page = parseInt(req.query.page) || 1;
+
+//   if (!familyId) throw new ApiError(400, "Family ID is required");
+
+//   const stories = await Story.find({ family_id: familyId })
+//     .sort({ createdAt: -1 }) // descending
+//     .skip((page - 1) * limit)
+//     .limit(limit);
+
+//   const total = await Story.countDocuments({ family_id: familyId });
+
+//   return res.status(200).json(
+//     new ApiResponse(200, {
+//       stories,
+//       pagination: {
+//         total,
+//         page,
+//         limit,
+//         totalPages: Math.ceil(total / limit),
+//       },
+//     }, "Stories fetched in descending order")
+//   );
+// });
 
 
 // future aspects

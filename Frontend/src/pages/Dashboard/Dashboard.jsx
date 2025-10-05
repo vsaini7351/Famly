@@ -2,18 +2,17 @@
 import { useState } from "react";
 import FamilyCircles from "../../components/DashboardComponents/FamilyCircles";
 import AddMemory from "../../components/DashboardComponents/AddMemory";
-import Timeline from "../../components/DashboardComponents/Timeline";
 import FamilyTree from "../../components/DashboardComponents/FamilyTree";
 import Search from "../../components/DashboardComponents/Search";
 import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
-
+import TimelinePage from "../family/TimelinePage";
 
 const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
-  { name: "Add Memory", component: <AddMemory /> },
-  { name: "Timeline", component: <Timeline /> },
+   { name: "Add Memory", component: <AddMemory familyId={2} /> },
+  { name: "Timeline", component: <TimelinePage familyId={2}/> },
   { name: "Family Tree", component: <FamilyTree familyId={2}/> },
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },

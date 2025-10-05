@@ -1,10 +1,10 @@
 // Timeline.jsx
-import React from 'react';
+// import React from 'react';
 
-const Timeline = () => {
-  return (
-    <div>Timeline</div>
-  );
-};
+// const Timeline = () => {
+//   return (
+//     <div>Timeline</div>
+//   );
+// };
 
-export default Timeline;
+// export default Timeline;
