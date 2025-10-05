@@ -5,6 +5,7 @@ import {Route,createBrowserRouter,createRoutesFromElements,RouterProvider} from 
 import { AuthProvider } from './utils/authContext.jsx'
 import Home from './pages/Home/HomePage.jsx'
 import AuthPage from './pages/auth/Login.jsx'
+import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 
 
 const router=createBrowserRouter(
