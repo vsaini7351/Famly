@@ -8,6 +8,8 @@ import AuthPage from './pages/auth/Login.jsx'
 import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 import Overview from './components/DashboardComponents/Overview.jsx'
 
+import { ThemeProvider } from './utils/ThemeContext.jsx'
+
 
 const router=createBrowserRouter(
   createRoutesFromElements(
@@ -27,7 +29,9 @@ const router=createBrowserRouter(
 createRoot(document.getElementById('root')).render(
   
     <AuthProvider>
+      <ThemeProvider>
       <RouterProvider router={router}/>
+      </ThemeProvider>
     </AuthProvider>
     
   

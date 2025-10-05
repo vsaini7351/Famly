@@ -1,4 +1,3 @@
-// DashboardLayout.jsx
 import { useState } from "react";
 import FamilyCircles from "../../components/DashboardComponents/FamilyCircles";
 import AddMemory from "../../components/DashboardComponents/AddMemory";
@@ -9,86 +8,71 @@ import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
 
-
 const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
   { name: "Add Memory", component: <AddMemory /> },
   { name: "Timeline", component: <Timeline /> },
-  { name: "Family Tree", component: <FamilyTree familyId={2}/> },
+  { name: "Family Tree", component: <FamilyTree familyId={2} /> },
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
-  { name:"Overview", component: <Overview/>}
+  { name: "Overview", component: <Overview /> },
 ];
-  const [selectedComponent, setSelectedComponent] = useState(<Overview />);
 
-  console.log("✅ Overview component mounted");
+export default function DashboardLayout() {
+  // Use name as state
+  const [selectedComponentName, setSelectedComponentName] = useState("Family Circles");
+
+  // Find the selected component from menuItems
+  const selectedComponent = menuItems.find(
+    (item) => item.name === selectedComponentName
+  )?.component;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen min-h-screen">
       {/* Sidebar */}
-      {/* <aside className="w-64 bg-purple-100 p-4">
-        <h1 className="text-xl font-bold text-purple-600 mb-6">Famly</h1>
-        <nav>
-          {menuItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => setSelectedComponent(item.component)}
-              className="block text-purple-600 hover:bg-purple-300 rounded-lg p-3 mb-2 w-full text-left"
-            >
-              {item.name}
-            </button>
-          ))}
-        </nav>
-      </aside>  */}
-      <aside className="w-72 bg-white p-6 border-r border-gray-200 text-lg font-bold text-gray-800 p-4 border-2 border-purple-600 rounded-lg">
-        
-        <div className="rounded-lg mb-8 ">
-        <h2 className="text-lg rounded-lg font-bold text-gray-800">Navigation</h2>
-        <p className="text-sm  rounded-lg border-purple font-semibold text-gray-500">Explore your family's story</p>
+      <aside className="w-72 bg-white border-r text-lg font-bold text-gray-800 p-4 border-2 border-purple-600 rounded-lg">
+        <div className="rounded-lg mb-8">
+          <h2 className="text-lg rounded-lg font-bold text-gray-800">Navigation</h2>
+          <p className="text-sm rounded-lg border-purple font-semibold text-gray-500">
+            Explore your family's story
+          </p>
         </div>
+
         <nav className="space-y-2">
-        {menuItems.map((item) => {
-          const isActive = selectedComponent === item.component;
-          const isHighlighted = item.name ;
+          {menuItems.map((item) => {
+            const isActive = selectedComponentName === item.name;
 
-          return (
-            <button
-              key={item.name}
-              onClick={() => setSelectedComponent(item.component)}
-              className={`w-full flex items-center space-x-4 p-3 rounded-lg transition-all duration-200 text-left
-                ${isActive
-                  ? 'bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white shadow-md'
-                  : isHighlighted
-                  ? ' text-purple-700 hover:bg-purple-50'
-                  : 'text-gray-600 hover:bg-purple-50'
-                }`
-              }
-            >
-              <div className={isActive ? 'text-white' : 'text-purple-600'}>
-                {item.icon}
-              </div>
-              <div>
-                <p className={`font-semibold ${isActive ? 'text-white' : 'text-gray-800'}`}>
-                  {item.name}
-                </p>
-                <p className={`text-sm ${isActive ? 'text-purple-100' : 'text-gray-500'}`}>
-                  {item.subtitle}
-                </p>
-              </div>
-            </button>
-          );
-        })}
-      </nav>
-
-      </aside> 
-      
-      
+            return (
+              <button
+                key={item.name}
+                onClick={() => setSelectedComponentName(item.name)}
+                className={`w-full flex items-center space-x-4 p-3 rounded-lg transition-all duration-200 text-left
+                  ${
+                    isActive
+                      ? "bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white shadow-md"
+                      : "text-purple-700 hover:bg-purple-50"
+                  }`}
+              >
+                <div className={isActive ? "text-white" : "text-purple-600"}>
+                  {item.icon}
+                </div>
+                <div>
+                  <p className={`font-semibold ${isActive ? "text-white" : "text-gray-800"}`}>
+                    {item.name}
+                  </p>
+                  <p className={`text-sm ${isActive ? "text-purple-100" : "text-gray-500"}`}>
+                    {item.subtitle}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 bg-white">
-        {selectedComponent}
-      </main>
+      <main className="flex-1 p-6">{selectedComponent}</main>
     </div>
   );
 }
