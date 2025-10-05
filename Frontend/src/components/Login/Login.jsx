@@ -7,6 +7,9 @@ import { saveAuthData } from "../../utils/auth.utils";
 import { User, Lock, Mail, Phone, Calendar, Camera, UserPlus, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+
+
+
 const AuthCard = () => {
   const [mode, setMode] = useState("signin"); // "signin" | "signup"
   const [loading, setLoading] = useState(false);
@@ -78,6 +81,7 @@ const AuthCard = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white/60 backdrop-blur-md border border-purple-100 rounded-2xl p-6 shadow-md"
+        
       >
         <h2 className="text-center text-2xl font-semibold text-purple-700">
           Welcome to FAMLY
@@ -87,7 +91,7 @@ const AuthCard = () => {
         </p>
 
         {/* Tabs */}
-        <div className="flex mb-6 bg-purple-100 rounded-full p-1">
+        <div className="flex mb-6 bg-purple-100 rounded-full p-1" >
           <button
             onClick={() => setMode("signin")}
             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-full transition-all ${

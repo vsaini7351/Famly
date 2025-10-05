@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { INTEGER } from "sequelize";
 
 const privategroupSchema = new Schema({
   name: {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet } from "react-router-dom";
 import Footer from './components/Common/Footer';
 import Header from './components/Common/Header';
-
+import FamilyTree from './components/family/FamlyTreeCard';
 
 function App() {
   
@@ -19,5 +19,8 @@ function App() {
     </div>
   )
 }
+
+
+
 
 export default App

@@ -43,7 +43,7 @@ router.delete("/remove-member/:family_id", verifyJWT, removeMember);
 router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 
 
-router.get("/tree/:family_id", verifyJWT, getFamilyAncestorsAndDescendants);
+router.get("/tree/:familyId", verifyJWT, getFamilyAncestorsAndDescendants);
 
 
 router.post("/join-family", verifyJWT, joinFamily);

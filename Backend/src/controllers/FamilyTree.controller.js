@@ -5,7 +5,8 @@ import { Membership, User, Family } from "../models/index.js";
 
 export async function getFamilyAncestorsAndDescendants(req, res) {
   try {
-    const familyId = Number(req.params.familyId ?? req.body.familyId);
+    console.log("hii")
+    const familyId = Number(req.params.familyId );
     if (!familyId) {
       return res.status(400).json({ error: "familyId required" });
     }

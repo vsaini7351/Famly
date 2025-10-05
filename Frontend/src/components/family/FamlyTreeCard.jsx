@@ -8,30 +8,20 @@ const FamilyTree = ({ familyId }) => {
   const [descendantOffset, setDescendantOffset] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const fetchTree = async (ancOffset = ancestorOffset, descOffset = descendantOffset) => {
-  setLoading(true);
-  try {
-    const res = await api.get(`/family/tree/${familyId}`, {
-      params: {
-        ancestorOffset: ancOffset,
-        descendantOffset: descOffset,
-      },
-    });
-    setData(res.data);
-  } catch (err) {
-    console.error("Error fetching family tree:", err);
-    if (err.response) {
-      console.error("Server Error:", err.response.data);
-    } else if (err.request) {
-      console.error("Network Error:", err.request);
-    } else {
-      console.error("Error Message:", err.message);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
 
+  const fetchTree = async () => {
+    setLoading(true);
+    try {
+     const res = await api.get(`/family/tree/${familyId}?ancestorOffset=0&descendantOffset=0`);
+
+      console.log("✅ Family tree response:", res.data);
+      setData(res.data);
+    } catch (err) {
+      console.error("❌ Error fetching family tree:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTree();
@@ -121,3 +111,43 @@ const FamilyTree = ({ familyId }) => {
 };
 
 export default FamilyTree;
+
+
+// import { useEffect, useState } from "react";
+// import api from "../../utils/axios";
+
+// const FamilyTree = ({ familyId }) => {
+//   const [data, setData] = useState(null);
+//   const [loading, setLoading] = useState(false);
+
+//   const fetchTree = async () => {
+//     setLoading(true);
+//     try {
+//      const res = await api.get(`/family/tree/${familyId}?ancestorOffset=0&descendantOffset=0`);
+
+//       console.log("✅ Family tree response:", res.data);
+//       setData(res.data);
+//     } catch (err) {
+//       console.error("❌ Error fetching family tree:", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchTree();
+//   }, [familyId]);
+
+//   if (loading) return <div>Loading...</div>;
+//   if (!data) return <div>No data found</div>;
+
+//   return (
+//     <div style={{ padding: "20px" }}>
+//       <h2>Family Tree Data:</h2>
+//       <pre>{JSON.stringify(data, null, 2)}</pre>
+//     </div>
+//   );
+// };
+
+// export default FamilyTree;
+
