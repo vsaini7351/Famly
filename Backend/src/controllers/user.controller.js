@@ -74,10 +74,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // Profile photo upload
   let profilePhotoUrl = null;
+  //ek defalult image cloudinary par store karakar uska url yaha de denge
+  console.log(req.file?.path)
   if (req.file?.path) {
     const uploadRes = await uploadOnCloudinary(req.file.path, "image");
     profilePhotoUrl = uploadRes.secure_url;
   }
+  console.log(profilePhotoUrl)
+
 
   const user = await User.create({
     fullname,
