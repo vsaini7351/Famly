@@ -28,6 +28,10 @@ router.post(
   createStory
 );
 
+router.get("/recent-story", verifyJWT, getRecentStories); // main homepage 
+
+
+router.get("/user-recent-stories", verifyJWT, getUserRecentStories);
 
 router.delete("/delete/:storyId", verifyJWT, deleteStory);
 
@@ -46,10 +50,7 @@ router.get("/family/:familyId/asc", verifyJWT, getFamilyStoriesAsc);
 router.get("/family/:familyId/desc", verifyJWT, getFamilyStoriesDesc);
 
 
-router.get("/recent-story", verifyJWT, getRecentStories);
 
-
-router.get("/timeline-story", verifyJWT, getUserRecentStories);
 // router.get("/:family_id/search")
 
 

@@ -14,7 +14,7 @@ const storySchema = new mongoose.Schema({
   tags: [{type: String,lowercase:true}],
   
   // References to PostgreSQL entities
-  uploaded_by: { type: Number, required: true }, // PostgreSQL user_id
+  uploaded_by: { type: Number, required: true,index:true }, // PostgreSQL user_id
   family_id: { type: Number, required: true },   // PostgreSQL family_id
   
   media: [mediaSchema],

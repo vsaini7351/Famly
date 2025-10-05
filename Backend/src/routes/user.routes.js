@@ -11,6 +11,7 @@ import {
   getUserProfile,
   loginWithGoogle,
   logout,
+  getUserFamilies
 } from "../controllers/user.controller.js";
 
 import { upload } from "../middlewares/multer.middleware.js";
@@ -56,5 +57,7 @@ router.put(
 
 // Get another user’s profile by ID
 router.get("/:userId/profile", getUserProfile);
+
+router.get("/get-families",verifyJWT,getUserFamilies);
 
 export default router;  

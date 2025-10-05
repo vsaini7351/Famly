@@ -9,7 +9,10 @@ import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
 
-const menuItems = [
+
+
+export default function DashboardLayout() {
+  const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
   { name: "Add Memory", component: <AddMemory /> },
   { name: "Timeline", component: <Timeline /> },
@@ -17,14 +20,12 @@ const menuItems = [
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
-  { name:"Overview", components: <Overview/>}
+  { name:"Overview", component: <Overview/>}
 ];
-
-export default function DashboardLayout() {
-  const [selectedComponent, setSelectedComponent] = useState(<FamilyCircles />);
+  const [selectedComponent, setSelectedComponent] = useState(<Overview />);
 
   console.log("✅ Overview component mounted");
-  
+
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
