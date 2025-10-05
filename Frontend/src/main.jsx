@@ -6,11 +6,12 @@ import {Route,createBrowserRouter,createRoutesFromElements,RouterProvider} from 
 import { AuthProvider } from './utils/authContext.jsx'
 import AuthCard from './components/Login/Login.jsx'
 import AuthPage from './pages/auth/Login.jsx'
+import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 
 
 const router=createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<AuthPage/>} errorElement>
+    <Route path='/' element={<DashboardLayout/>} errorElement>
 
     </Route>
   )
