@@ -3,7 +3,7 @@ import React from 'react';
 
 const AddMemory = () => {
   return (
-    <div>AddMemory</div>
+    <div  >AddMemory</div>
   );
 };
 
