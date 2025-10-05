@@ -29,7 +29,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <aside className="w-64 bg-purple-100 p-4">
+      {/* <aside className="w-64 bg-purple-100 p-4">
         <h1 className="text-xl font-bold text-purple-600 mb-6">Famly</h1>
         <nav>
           {menuItems.map((item, index) => (
@@ -42,7 +42,50 @@ export default function DashboardLayout() {
             </button>
           ))}
         </nav>
-      </aside>
+      </aside>  */}
+      <aside className="w-72 bg-white p-6 border-r border-gray-200 text-lg font-bold text-gray-800 p-4 border-2 border-purple-600 rounded-lg">
+        
+        <div className="rounded-lg mb-8 ">
+        <h2 className="text-lg rounded-lg font-bold text-gray-800">Navigation</h2>
+        <p className="text-sm  rounded-lg border-purple font-semibold text-gray-500">Explore your family's story</p>
+        </div>
+        <nav className="space-y-2">
+        {menuItems.map((item) => {
+          const isActive = selectedComponent === item.component;
+          const isHighlighted = item.name ;
+
+          return (
+            <button
+              key={item.name}
+              onClick={() => setSelectedComponent(item.component)}
+              className={`w-full flex items-center space-x-4 p-3 rounded-lg transition-all duration-200 text-left
+                ${isActive
+                  ? 'bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white shadow-md'
+                  : isHighlighted
+                  ? ' text-purple-700 hover:bg-purple-50'
+                  : 'text-gray-600 hover:bg-purple-50'
+                }`
+              }
+            >
+              <div className={isActive ? 'text-white' : 'text-purple-600'}>
+                {item.icon}
+              </div>
+              <div>
+                <p className={`font-semibold ${isActive ? 'text-white' : 'text-gray-800'}`}>
+                  {item.name}
+                </p>
+                <p className={`text-sm ${isActive ? 'text-purple-100' : 'text-gray-500'}`}>
+                  {item.subtitle}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </nav>
+
+      </aside> 
+      
+      
 
       {/* Main Content */}
       <main className="flex-1 p-6 bg-white">
