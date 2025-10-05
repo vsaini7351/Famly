@@ -8,11 +8,12 @@ import {
    updateFamily ,
     removeMember , 
     deleteFamily ,
+    leaveMember,
     joinFamily,
-    leaveMember 
+    
 } from "../controllers/family.controller.js";
 
-import {getFamilyAncestorsAndDescendants } from "../controllers/FamilyTree.controller.js"
+import { getFamilyAncestorsAndDescendants} from '../controllers/FamilyTree.controller.js'
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 

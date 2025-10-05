@@ -488,6 +488,7 @@ const getRecentStories = asyncHandler(async (req, res) => {
     }, "Recent stories fetched successfully")
   );
 });
+
 // fetching all user stories 
 const getUserRecentStories = asyncHandler(async (req, res) => {
   const userId = req.user.user_id; // from auth middleware
