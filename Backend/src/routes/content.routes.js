@@ -33,6 +33,11 @@ router.get("/recent-story", verifyJWT, getRecentStories); // main homepage
 
 router.get("/user-recent-stories", verifyJWT, getUserRecentStories);
 
+router.get("/recent-story", verifyJWT, getRecentStories);
+
+
+router.get("/timeline-story", verifyJWT, getUserRecentStories);
+
 router.delete("/delete/:storyId", verifyJWT, deleteStory);
 
 

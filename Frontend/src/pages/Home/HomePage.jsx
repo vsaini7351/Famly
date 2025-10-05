@@ -1,7 +1,7 @@
 //it include create family options
 //it include create family options
 import hero from "../../assets/home-image.jpg";
-import annu from "../../assets/famly-logo.png"
+import annu from "../../assets/famly-logo.png";
 const Home = () => {
   return (
     <main className="bg-gray-50 text-gray-800 font-sans">
@@ -230,11 +230,13 @@ const Home = () => {
           
           {/* Column 1: Brand Info */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center space-x-2 mb-4">
+            <div className="flex items-center space-x-2 mb-4" >
               {/* You can replace this SVG with your actual logo */}
-              <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" />
-              </svg>
+              <img
+                      src={annu}
+                      alt="Logo"
+                      className="w-10 h-10 object-cover rounded-lg shadow-md"
+                  />
               <span className="text-2xl font-bold">FAMLY</span>
             </div>
             <p className="text-gray-300">

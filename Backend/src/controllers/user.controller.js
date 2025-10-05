@@ -50,7 +50,7 @@ const loginWithGoogle = asyncHandler(async (req, res) => {
 // ========== REGISTER USER ==========
 const registerUser = asyncHandler(async (req, res) => {
   const { fullname, username, dob, gender, email, phone_no, password } = req.body;
-
+// take gender in lowercase;
   if (!fullname || !username || !dob || !gender || !email || !phone_no || !password) {
     throw new ApiError(400, "All fields are required");
   }
