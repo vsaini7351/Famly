@@ -422,7 +422,7 @@ const deleteFamily = asyncHandler(async (req, res) => {
 
 const joinFamily = asyncHandler(async (req, res) => {
   const { invitation_code } = req.body;
-  const user_id = Number(req.user.user._id);
+  const user_id = Number(req.user.user_id);
 
   if (!invitation_code) {
     throw new ApiError(400, "Invitation code is required");

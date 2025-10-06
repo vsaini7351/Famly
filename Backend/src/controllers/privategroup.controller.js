@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { User } from "../models/index.js";
 const generateInvitationCode = () => {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // exclude confusing letters
   let code = "FAM-";
@@ -102,6 +103,7 @@ const getMyPrivateGroups = asyncHandler(async (req, res) => {
     .sort({ updatedAt: -1 }) // show most recently active groups first
     .lean(); // return plain JS objects (faster than Mongoose docs)
 
+    console.log("hit hua")
   if (!groups || groups.length === 0) {
     return res
       .status(200)
@@ -210,13 +212,56 @@ const removeGroupStory = asyncHandler(async (req, res) => {
 const getGroupDetails = asyncHandler(async (req, res) => {
   const { groupId } = req.params;
 
+  // 1️⃣ Fetch group from MongoDB
   const group = await Privategroup.findById(groupId)
-  .select("name description inviteCode members story createdBy")
-  .lean();
+    .select("name description inviteCode members createdBy")
+    .lean();
 
   if (!group) throw new ApiError(404, "Group not found");
 
-  return res.status(200).json(new ApiResponse(200, group, "Group details fetched"));
+  // 2️⃣ Collect all member user_ids
+  const memberIds = group.members.map((m) => m.user_id);
+ 
+
+  if (memberIds.length === 0) {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, group, "Group has no members yet"));
+  }
+
+  // 3️⃣ Fetch those users from PostgreSQL (Sequelize)
+  const users = await User.findAll({
+    where: { user_id: memberIds },
+    attributes: ["user_id", "fullname", "username", "profilePhoto"],
+    raw: true, // returns plain JS objects instead of Sequelize instances
+  });
+
+  console.log(users);
+   const userMap = users.reduce((acc, u) => {
+    acc[Number(u.user_id)] = u;
+    return acc;
+  }, {});
+
+  // 5️⃣ Merge user info into members
+  const membersWithUser = group.members.map((m) => {
+    const user = userMap[Number(m.user_id)];
+    return {
+      user_id: m.user_id,
+      role: m.role,
+      joinedAt: m.joinedAt,
+      fullname: user?.fullname || null,
+      username: user?.username || null,
+      profilePhoto: user?.profilePhoto || null,
+    };
+  });
+
+  // 5️⃣ Replace members in the group object
+  group.members = membersWithUser;
+
+  // 6️⃣ Send response
+  return res
+    .status(200)
+    .json(new ApiResponse(200, group, "✅ Group details with member info fetched"));
 });
 
 // ========== REMOVE MEMBER (owner only) ==========
@@ -357,9 +402,42 @@ const getGroupStories = asyncHandler(async (req, res) => {
   const end = start + parseInt(limit);
   const paginatedStories = stories.slice(start, end);
 
+  const storyCreatorIds = [...new Set(paginatedStories.map(st => st.createdBy))];
+
+    let userMap = {};
+    if (storyCreatorIds.length > 0) {
+        // 6️⃣ Fetch user details from PostgreSQL (Sequelize)
+        const users = await User.findAll({
+            where: { user_id: storyCreatorIds },
+            attributes: ["user_id", "fullname", "username", "profilePhoto"],
+            raw: true,
+        });
+
+        // 7️⃣ Create a map for quick lookup: { user_id: user_object }
+        userMap = users.reduce((acc, u) => {
+            acc[Number(u.user_id)] = u;
+            return acc;
+        }, {});
+    }
+
+    // 8️⃣ Merge user info into the stories
+    const storiesWithUserInfo = paginatedStories.map(story => {
+        const creator = userMap[Number(story.createdBy)] || {};
+        return {
+            ...story,
+            createdBy: {
+                user_id: story.createdBy,
+                fullname: creator.fullname || 'Unknown User',
+                username: creator.username || null,
+                profilePhoto: creator.profilePhoto || null,
+            }
+        };
+    });
+
+
   return res.status(200).json(
     new ApiResponse(200, {
-      stories: paginatedStories,
+      stories: storiesWithUserInfo,
       pagination: {
         total: totalStories,
         page: Number(page),

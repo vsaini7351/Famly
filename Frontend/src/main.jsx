@@ -9,6 +9,8 @@ import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 import Overview from './components/DashboardComponents/Overview.jsx'
 
 import { ThemeProvider } from './utils/ThemeContext.jsx'
+import PrivateGroups from './components/PrivateGroup/PriavateGroupDashboard.jsx'
+import UserProfile from './pages/userprofile/UserProfile.jsx'
 import About from './pages/About/About.jsx'
 import Contact from './pages/Contact/Contact.jsx'
 
@@ -20,6 +22,10 @@ const router=createBrowserRouter(
       <Route path='auth' element={<AuthPage/>} />
       <Route path='dashboard' element={<DashboardLayout/>} />
       <Route path='overview' element={<Overview/>} />
+      <Route path='private-group' element={<PrivateGroups/>} />
+      <Route path='user/:user_id' element={<UserProfile/>} />
+
+
       <Route path='about' element={<About/>} />
       <Route path='contact' element={<Contact/>} />
     </Route>

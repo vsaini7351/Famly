@@ -13,7 +13,7 @@ import {
     
 } from "../controllers/family.controller.js";
 
-import { getFamilyAncestorsAndDescendants} from '../controllers/FamilyTree.controller.js'
+import { getFamilyAncestorsAndDescendants, getFamilyAncestorsAndDescendantsById} from '../controllers/FamilyTree.controller.js'
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -44,6 +44,7 @@ router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 
 
 router.get("/tree", verifyJWT, getFamilyAncestorsAndDescendants);
+router.get("/tree/:user_id",getFamilyAncestorsAndDescendantsById);
 
 
 router.post("/join-family", verifyJWT, joinFamily);
