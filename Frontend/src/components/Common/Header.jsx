@@ -1,17 +1,19 @@
 // src/components/Layout/Header.jsx
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../utils/authContext"; 
-import { useTheme } from "../../utils/ThemeContext"; 
+import { useAuth } from "../../utils/authContext";
+import { useTheme } from "../../utils/ThemeContext";
 import famlyLogo from "../../assets/famly-logo.png";
 import { Sun, Moon, Menu, X, LogOut } from "lucide-react";
-
+import NotificationsPage from "../../pages/notifications/NotificationPage";
+import { Bell } from "lucide-react";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
   const user = auth?.user;
 
   const [menuOpen, setMenuOpen] = useState(false);
+
 
   const { theme, toggleTheme } = useTheme();
 
@@ -22,8 +24,8 @@ const Header = () => {
 
   return (
     <header className={`sticky top-0 z-50 backdrop-blur-lg transition-all duration-300 
-      ${theme === "dark" ? "bg-gray-900/90 border-b border-gray-700 shadow-md" 
-                          : "bg-white/80 border-b border-gray-200 shadow-md"}`}>
+      ${theme === "dark" ? "bg-gray-900/90 border-b border-gray-700 shadow-md"
+        : "bg-white/80 border-b border-gray-200 shadow-md"}`}>
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
@@ -41,7 +43,7 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 font-semibold text-lg">
-          {["Home","About","Contact"].map((page) => (
+          {["Home", "About", "Contact"].map((page) => (
             <Link
               key={page}
               to={`/${page.toLowerCase()}`}
@@ -56,8 +58,8 @@ const Header = () => {
             <Link
               to="/auth"
               className={`px-5 py-2 rounded-full font-medium shadow-md transition-all duration-300
-                ${theme === "dark" 
-                  ? "bg-purple-700 text-white hover:bg-purple-600" 
+                ${theme === "dark"
+                  ? "bg-purple-700 text-white hover:bg-purple-600"
                   : "bg-purple-500 text-white hover:bg-purple-600"}`}
             >
               Login / Signup
@@ -81,6 +83,14 @@ const Header = () => {
               >
                 <LogOut size={18} /> Logout
               </button>
+              <button
+                onClick={() => navigate("/notifications")} // ✅ navigate to page
+                className={`flex items-center gap-1 font-medium transition-colors
+    ${theme === "dark" ? "text-purple-300 hover:text-purple-200" : "text-purple-700 hover:text-purple-500"}`}
+              >
+                <Bell size={18} /> Notifications
+              </button>
+
             </div>
           )}
 
@@ -88,8 +98,8 @@ const Header = () => {
           <button
             onClick={toggleTheme}
             className={`ml-3 p-2 rounded-full transition-all hover:scale-110
-              ${theme === "dark" ? "bg-gray-700 text-yellow-400 hover:bg-gray-600" 
-                                  : "bg-purple-100 text-purple-600 hover:bg-purple-200"}`}
+              ${theme === "dark" ? "bg-gray-700 text-yellow-400 hover:bg-gray-600"
+                : "bg-purple-100 text-purple-600 hover:bg-purple-200"}`}
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -108,9 +118,9 @@ const Header = () => {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className={`md:hidden py-4 px-6 space-y-4 text-center transition-all duration-300
-          ${theme === "dark" ? "bg-gray-900/95 border-t border-gray-700" 
-                              : "bg-white/90 border-t border-gray-200"}`}>
-          {["Home","About","Contact"].map((page) => (
+          ${theme === "dark" ? "bg-gray-900/95 border-t border-gray-700"
+            : "bg-white/90 border-t border-gray-200"}`}>
+          {["Home", "About", "Contact"].map((page) => (
             <Link
               key={page}
               to={`/${page.toLowerCase()}`}
@@ -127,8 +137,8 @@ const Header = () => {
               to="/auth"
               onClick={() => setMenuOpen(false)}
               className={`inline-block px-5 py-2 rounded-full font-medium shadow-md transition-all duration-300
-                ${theme === "dark" ? "bg-purple-700 text-white hover:bg-purple-600" 
-                                    : "bg-purple-500 text-white hover:bg-purple-600"}`}
+                ${theme === "dark" ? "bg-purple-700 text-white hover:bg-purple-600"
+                  : "bg-purple-500 text-white hover:bg-purple-600"}`}
             >
               Login / Signup
             </Link>
@@ -165,8 +175,8 @@ const Header = () => {
           <button
             onClick={toggleTheme}
             className={`mt-3 p-2 rounded-full transition-all hover:scale-110
-              ${theme === "dark" ? "bg-gray-700 text-yellow-400 hover:bg-gray-600" 
-                                  : "bg-purple-100 text-purple-600 hover:bg-purple-200"}`}
+              ${theme === "dark" ? "bg-gray-700 text-yellow-400 hover:bg-gray-600"
+                : "bg-purple-100 text-purple-600 hover:bg-purple-200"}`}
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>

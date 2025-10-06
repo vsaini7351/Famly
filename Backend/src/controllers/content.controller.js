@@ -135,7 +135,8 @@ const createStory = asyncHandler(async (req, res) => {
   // GPT tags from caption
   // const captionAITags = await generateTagsFromText(caption);
   const captionAITags=[];
-
+ console.log(mediaFiles);
+ console.log(mediaText);
   for (let i = 0; i < mediaText.length; i++) {
     let mediaAITags = [];
     let textForTags = "";

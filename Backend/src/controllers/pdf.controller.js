@@ -115,9 +115,12 @@ import puppeteer from "puppeteer";
 import { Story } from "../models/story.models.js";
 import { User, Family, Membership } from "../models/index.js";
 
+
 export const generateFamilyStoriesPDF = async (req, res) => {
   try {
     const { familyId } = req.params;
+    const { title, subtitle, description } = req.body; // ✅ Added new dynamic fields
+
     if (!familyId) return res.status(400).json({ error: "familyId is required" });
 
     // Fetch family info
@@ -133,13 +136,13 @@ export const generateFamilyStoriesPDF = async (req, res) => {
     const memberIds = memberships.map(m => m.user_id).filter(id => !rootMemberIds.includes(id));
     const members = await User.findAll({ where: { user_id: memberIds } });
 
-    // Build a unified user map (root + other members)
+    // Build user map
     const userMap = {};
     [...rootMembers, ...members].forEach(u => {
       userMap[u.user_id] = { name: u.fullname, profilePhoto: u.profilePhoto };
     });
 
-    // Fetch all stories
+    // Fetch stories
     const stories = await Story.find({ family_id: parseInt(familyId) })
       .sort({ memory_date: 1, createdAt: 1 });
 
@@ -149,10 +152,11 @@ export const generateFamilyStoriesPDF = async (req, res) => {
       <head>
         <style>
           body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fefefe; }
-          .cover { text-align: center; padding: 40px 20px; background: #e0f7fa; border-bottom: 4px solid #00796b; }
-          .cover h1 { font-size: 36px; margin-bottom: 10px; color: #004d40; }
-          .cover p { font-size: 16px; color: #00695c; margin-bottom: 5px; }
-          .members { font-size: 14px; color: #004d40; margin-top: 10px; }
+          .cover { text-align: center; padding: 50px 20px; background: #e0f7fa; border-bottom: 4px solid #00796b; }
+          .cover h1 { font-size: 38px; margin-bottom: 8px; color: #004d40; }
+          .cover h2 { font-size: 22px; margin-bottom: 8px; color: #00695c; }
+          .cover p.desc { font-size: 15px; color: #004d40; margin: 12px 0; max-width: 700px; margin-left: auto; margin-right: auto; }
+          .members { font-size: 14px; color: #004d40; margin-top: 15px; }
           .memories { padding: 20px; display: block; }
           .memory {
             border: 2px solid #00796b;
@@ -212,8 +216,9 @@ export const generateFamilyStoriesPDF = async (req, res) => {
       </head>
       <body>
         <div class="cover">
-          <h1>Beautiful Memories of ${family.family_name}</h1>
-          ${family.description ? `<p>${family.description}</p>` : ""}
+          <h1>${title || `Beautiful Memories of ${family.family_name}`}</h1>
+          ${subtitle ? `<h2>${subtitle}</h2>` : ""}
+          <p class="desc">${description || family.description || ""}</p>
           <p class="members">
             Root Members: 
             ${userMap[family.male_root_member]?.name || 'N/A'} (M), 

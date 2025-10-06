@@ -7,16 +7,19 @@ import MemoryPrompts from "../../components/DashboardComponents/MemoryPrompts";
 import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
 import TimelinePage from "../family/TimelinePage";
-
+import FamilyPDFGenerator from "../../components/DashboardComponents/PdfGenerator";
+import CreateNotification from "../../components/DashboardComponents/Notification"
 const menuItems = [
   { name: "Overview", component: <Overview /> },
   { name: "Family Circles", component: <FamilyCircles /> },
    { name: "Add Memory", component: <AddMemory familyId={2} /> },
   { name: "Timeline", component: <TimelinePage familyId={2}/> },
   { name: "Family Tree", component: <FamilyTree familyId={2}/> },
-  { name: "Search", component: <Search /> },
+  { name: "Search", component: <Search /> }, 
+  { name :"Notification", component: <CreateNotification />} ,
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
+  { name: "Export Pdf", component: <FamilyPDFGenerator   familyId={2}/> },
   
 ];
 
