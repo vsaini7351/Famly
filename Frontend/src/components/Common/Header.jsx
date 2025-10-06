@@ -43,6 +43,7 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 font-semibold text-lg">
+<<<<<<< HEAD
           {["Home", "About", "Contact"].map((page) => (
             <Link
               key={page}
@@ -53,6 +54,21 @@ const Header = () => {
               {page}
             </Link>
           ))}
+=======
+          {["Home", "About", "Contact"].map((page) => {
+            const path = page === "Home" ? "/" : `/${page.toLowerCase()}`;
+            return (
+              <Link
+                key={page}
+                to={path}
+                className={`transition-colors duration-200 hover:underline
+        ${theme === "dark" ? "text-gray-200 hover:text-white" : "text-purple-700 hover:text-purple-500"}`}
+              >
+                {page}
+              </Link>
+            );
+          })}
+>>>>>>> upstream/main
 
           {!user ? (
             <Link

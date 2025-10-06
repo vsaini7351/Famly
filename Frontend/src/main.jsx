@@ -9,11 +9,18 @@ import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 import Overview from './components/DashboardComponents/Overview.jsx'
 
 import { ThemeProvider } from './utils/ThemeContext.jsx'
+<<<<<<< HEAD
 import NotificationsPage from './pages/notifications/NotificationPage.jsx'
 import MemberFamilyPage from './pages/family/MemberFamilyPage.jsx'
 import OwnerFamilyPage from './pages/family/OwnerFamilyPage.jsx'
 import CreateFamilyForm from './components/family/FamilyForm.jsx'
 import JoinFamilyCard from './components/family/JoinFamilythroughInvitationCode.jsx'
+=======
+import About from './pages/About/About.jsx'
+import Contact from './pages/Contact/Contact.jsx'
+
+
+>>>>>>> upstream/main
 const router=createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement>
@@ -21,6 +28,7 @@ const router=createBrowserRouter(
       <Route path='auth' element={<AuthPage/>} />
       <Route path='dashboard' element={<DashboardLayout/>} />
       <Route path='overview' element={<Overview/>} />
+<<<<<<< HEAD
         <Route path="notifications" element={<NotificationsPage />} />
       <Route path="owner-family/:familyId" element={<OwnerFamilyPage/>} />
       <Route path="member-family/:familyId" element={<MemberFamilyPage/>} />
@@ -28,6 +36,10 @@ const router=createBrowserRouter(
       <Route path="Join-family-thorught-code" element={<JoinFamilyCard/>} />
         
 
+=======
+      <Route path='about' element={<About/>} />
+      <Route path='contact' element={<Contact/>} />
+>>>>>>> upstream/main
     </Route>
 
   )
