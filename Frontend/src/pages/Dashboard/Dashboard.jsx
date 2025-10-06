@@ -9,19 +9,20 @@ import AIInsights from "../../components/DashboardComponents/AIInsights";
 import Overview from "../../components/DashboardComponents/Overview";
 
 const menuItems = [
+  { name: "Overview", component: <Overview /> },
   { name: "Family Circles", component: <FamilyCircles /> },
   { name: "Add Memory", component: <AddMemory /> },
   { name: "Timeline", component: <Timeline /> },
-  { name: "Family Tree", component: <FamilyTree familyId={2} /> },
+  { name: "Family Tree", component: <FamilyTree familyId={14} /> },
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
-  { name: "Overview", component: <Overview /> },
+  
 ];
 
 export default function DashboardLayout() {
   // Use name as state
-  const [selectedComponentName, setSelectedComponentName] = useState("Family Circles");
+  const [selectedComponentName, setSelectedComponentName] = useState("Overview");
 
   // Find the selected component from menuItems
   const selectedComponent = menuItems.find(
