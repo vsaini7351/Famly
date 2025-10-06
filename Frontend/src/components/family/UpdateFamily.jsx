@@ -16,7 +16,7 @@ export default function UpdateFamilyForm({ familyId }) {
   useEffect(() => {
     const fetchFamily = async () => {
       try {
-        const res = await api.put(`/family/${familyId}`);
+        const res = await api.get(`/family/${familyId}`);
         const data = res.data.data;
         setFamilyData({
           family_name: data.family_name || "",

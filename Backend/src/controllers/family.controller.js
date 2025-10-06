@@ -336,7 +336,7 @@ const user_id = Number(req.user.user_id);
 
 const leaveMember = asyncHandler(async (req, res) => {
  const family_id = Number(req.params.family_id);
-  const user_id= Number(req.user.user._id);
+  const user_id= Number(req.user.user_id);
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -348,7 +348,7 @@ const leaveMember = asyncHandler(async (req, res) => {
 
 
   // Check if target user is a root member
-  if (family.male_root_member === user_id || family.female_root_member === user_id) {
+  if (Number(family.male_root_member) === user_id || Number(family.female_root_member) === user_id) {
     throw new ApiError(400, "Cannot remove a root member from the family");
   }
 
@@ -423,7 +423,7 @@ const deleteFamily = asyncHandler(async (req, res) => {
 
 const joinFamily = asyncHandler(async (req, res) => {
   const { invitation_code } = req.body;
-  const user_id = Number(req.user.user_id);
+  const user_id = (req.user.user_id);
 
   if (!invitation_code) {
     throw new ApiError(400, "Invitation code is required");
@@ -438,6 +438,8 @@ const joinFamily = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   // Check if user already belongs to another family
+  console.log(user.parent_family , " " , typeof(user.parent_family))
+  console.log(user)
   if (user.parent_family !== null) {
     throw new ApiError(400, "You already belong to another family and cannot join");
   }

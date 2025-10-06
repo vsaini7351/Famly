@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from '../../utils/axios'; // Recommended for handling file uploads
 // for owner famliy 
+import { useNavigate } from 'react-router-dom';
 function CreateFamilyForm() {
     const [familyName, setFamilyName] = useState('');
     const [marriageDate, setMarriageDate] = useState('');
@@ -9,7 +10,7 @@ function CreateFamilyForm() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
-
+   const navigate = useNavigate();
     // This URL must match your Express server's family creation endpoint
     const API_URL = '/family/create-family'; 
 
@@ -49,12 +50,13 @@ function CreateFamilyForm() {
             setMarriageDate('');
             setDescription('');
             setFamilyPhoto(null);
-
+            navigate("/Dashboard");
         } catch (err) {
             const errorMessage = err.response?.data?.message || 'An unexpected error occurred.';
             setError(errorMessage);
             console.error("Family creation error:", err);
         } finally {
+            
             setLoading(false);
         }
     };

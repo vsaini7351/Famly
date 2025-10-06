@@ -224,7 +224,7 @@ const Overview = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [loadingStories, setLoadingStories] = useState(false);
   const [noMoreStories, setNoMoreStories] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   // Fetch user profile data
   useEffect(() => {
@@ -366,7 +366,7 @@ const Overview = () => {
                 <Users size={16} /> <span>Created on {adminFamily.created_at}</span>
               </div>
               <button
-                 onClick={() => navigate(`/owner-family/${adminFamily.family_id}`)}
+                onClick={() => navigate(`/owner-family/${adminFamily.family_id}`)}
                 className="mt-4 w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white py-2 rounded-xl hover:opacity-90 transition-all">
                 Manage Family
               </button>
@@ -400,7 +400,7 @@ const Overview = () => {
           </div>
         )}
       </div>
-
+      {/* 
       {!adminFamily && !memberFamily && (
         <div className="text-center mt-10 text-gray-600">
           <p>You are not part of any family yet. 💭</p>
@@ -416,7 +416,39 @@ const Overview = () => {
           </button>
         </div>
         
+      )} */}
+
+      {/* 🚫 No Family Section */}
+      {!adminFamily && !memberFamily && (
+        <div className="text-center mt-10 text-gray-600">
+          <p>You are not part of any family yet. 💭</p>
+        </div>
       )}
+
+      {/* 🏠 If not admin of any family → show Create Family */}
+      {!adminFamily && (
+        <div className="text-center mt-6">
+          <button
+            onClick={() => navigate("/create-family")}
+            className="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white py-2 px-6 rounded-xl hover:opacity-90 transition-all"
+          >
+            Create Your Family
+          </button>
+        </div>
+      )}
+
+      {/* 🔑 If not a member of any family → show Join via Code */}
+      {!memberFamily && (
+        <div className="text-center mt-4">
+          <button
+            onClick={() => navigate("/join-family-through-code")}
+            className="bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white py-2 px-6 rounded-xl hover:opacity-90 transition-all"
+          >
+            Join a Family Using Invitation Code
+          </button>
+        </div>
+      )}
+
 
       {/* 📝 User Recent Stories */}
       <div className="mt-12">

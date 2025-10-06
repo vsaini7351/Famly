@@ -1,8 +1,9 @@
 // components/family/JoinFamilyCard.jsx
 import React, { useState } from "react";
 import api from "../../utils/axios";
-
+import { useNavigate } from "react-router-dom";
 export default function JoinFamilyCard() {
+  const navigate = useNavigate();
   const [invitationCode, setInvitationCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -27,6 +28,7 @@ export default function JoinFamilyCard() {
       setMessage({ type: "success", text: "Joined family successfully!" });
       setInvitationCode("");
       console.log("Joined family:", res.data.data);
+      navigate("/Dashboard")
     } catch (err) {
       console.error("Error joining family:", err);
       const msg =

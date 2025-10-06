@@ -10,24 +10,8 @@ import AddMemory from "../../components/DashboardComponents/AddMemory";
 import FamilyTree from "../../components/DashboardComponents/FamilyTree";
 import SearchComponent from "../../components/DashboardComponents/Search";
 import Overview from "../../components/DashboardComponents/Overview";
-<<<<<<< HEAD
-import TimelinePage from "../family/TimelinePage";
-import FamilyPDFGenerator from "../../components/DashboardComponents/PdfGenerator";
-import CreateNotification from "../../components/DashboardComponents/Notification"
-const menuItems = [
-  { name: "Overview", component: <Overview /> },
-  { name: "Family Circles", component: <FamilyCircles /> },
-   { name: "Add Memory", component: <AddMemory familyId={2} /> },
-  { name: "Timeline", component: <TimelinePage familyId={2}/> },
-  { name: "Family Tree", component: <FamilyTree familyId={2}/> },
-  { name: "Search", component: <Search /> }, 
-  { name :"Notification", component: <CreateNotification />} ,
-  { name: "Memory Prompts", component: <MemoryPrompts /> },
-  { name: "AI Insights", component: <AIInsights /> },
-  { name: "Export Pdf", component: <FamilyPDFGenerator   familyId={2}/> },
-  
-=======
 import TimelinePage from "../family/TimelinePage"; // Assuming this is correct
+import FamilyPDFGenerator from "../../components/DashboardComponents/PdfGenerator";
 
 
 // 1. Refactored menuItems with Icons and Subtitles
@@ -37,8 +21,8 @@ const menuItems = [
     { name: "Timeline", icon: <Clock size={20} />, subtitle: "Life events timeline", component: <TimelinePage /> }, // Removed unnecessary familyId prop from TimelinePage
     { name: "Family Tree", icon: <TreePalm size={20} />, subtitle: "Family relationships", component: <FamilyTree /> },
     { name: "Search", icon: <Search size={20} />, subtitle: "Find memories", component: <SearchComponent /> },
+    { name: "Export ", icon: <Search size={20} />, subtitle: "Get PDF", component: <FamilyPDFGenerator  familyId={2}/> },
     
->>>>>>> upstream/main
 ];
 
 // --- Custom Right Panel Components (Static placeholders for structure) ---
