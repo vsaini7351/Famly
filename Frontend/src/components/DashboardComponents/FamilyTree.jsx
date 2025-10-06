@@ -68,7 +68,7 @@ const FamilyNode = ({ fam, depth, idx }) => {
 // ====================================================================
 // FamilyTree Component (Data fetching logic is preserved)
 // ====================================================================
-const FamilyTree = ({ familyId }) => {
+const FamilyTree = () => {
   const [allFamily, setAllFamily] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

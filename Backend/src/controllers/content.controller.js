@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import {asyncHandler} from "../utils/asyncHandler.js";
 import mongoose from "mongoose";
+import {User,Family,Membership} from "../models/index.js";
 
 import natural from "natural";
 import sw from "stopword";
@@ -452,40 +453,97 @@ const getStory = asyncHandler(async (req, res) => {
 });
 
 // fetches recent stories (posts/memories) from all families that the logged-in user belongs to,
+// const getRecentStories = asyncHandler(async (req, res) => {
+//   const userId = req.user.user_id; // from auth middleware
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const skip = (page - 1) * limit;
+
+  
+//   const memberships = await Membership.findAll({ where: { user_id: userId } });
+//   const familyIds = memberships.map(m =>  parseInt(m.family_id));
+
+//   if (familyIds.length === 0) {
+//     return res.status(200).json(new ApiResponse(200, [], "No stories found"));
+//   }
+
+  
+//   const stories = await Story.find({ family_id: { $in: familyIds } })
+//     .sort({ memory_date: -1, createdAt: -1 }) // recent first
+//     .skip(skip)
+//     .limit(limit);
+
+
+//   const totalStories = await Story.countDocuments({ family_id: { $in: familyIds } });
+//   const totalPages = Math.ceil(totalStories / limit);
+
+//   return res.status(200).json(
+//     new ApiResponse(200, {
+//       stories,
+//       pagination: {
+//         page,
+//         limit,
+//         totalPages,
+//         totalStories
+//       }
+//     }, "Recent stories fetched successfully")
+//   );
+// });
+
 const getRecentStories = asyncHandler(async (req, res) => {
-  const userId = req.user.user_id; // from auth middleware
+  const userId = req.user.user_id;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
 
-  
+  // 1️⃣ Get families where this user is a member
   const memberships = await Membership.findAll({ where: { user_id: userId } });
-  const familyIds = memberships.map(m =>  parseInt(m.family_id));
+  const familyIds = memberships.map(m => parseInt(m.family_id));
 
   if (familyIds.length === 0) {
     return res.status(200).json(new ApiResponse(200, [], "No stories found"));
   }
 
-  
+  // 2️⃣ Get stories from MongoDB
   const stories = await Story.find({ family_id: { $in: familyIds } })
-    .sort({ memory_date: -1, createdAt: -1 }) // recent first
+    .sort({ memory_date: -1, createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean(); // lean for better performance
 
+  // 3️⃣ Collect all uploader IDs
+  const uploaderIds = [...new Set(stories.map(s => s.uploaded_by))];
 
+  // 4️⃣ Fetch user info from PostgreSQL in one query
+  const users = await User.findAll({
+    where: { user_id: uploaderIds },
+    attributes: ["user_id", "fullname", "username", "profilePhoto"],
+    raw: true,
+  });
+
+  // Convert to a quick lookup map
+  const userMap = Object.fromEntries(users.map(u => [u.user_id, u]));
+
+  // 5️⃣ Merge user info into each story
+  const storiesWithUser = stories.map(story => ({
+    ...story,
+    uploaded_by_user: userMap[story.uploaded_by] || null,
+  }));
+
+  // 6️⃣ Pagination
   const totalStories = await Story.countDocuments({ family_id: { $in: familyIds } });
   const totalPages = Math.ceil(totalStories / limit);
 
+  // 7️⃣ Send final response
   return res.status(200).json(
-    new ApiResponse(200, {
-      stories,
-      pagination: {
-        page,
-        limit,
-        totalPages,
-        totalStories
-      }
-    }, "Recent stories fetched successfully")
+    new ApiResponse(
+      200,
+      {
+        stories: storiesWithUser,
+        pagination: { page, limit, totalPages, totalStories },
+      },
+      "Recent stories fetched successfully"
+    )
   );
 });
 

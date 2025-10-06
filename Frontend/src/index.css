@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+:root {
+  /* Use a default light color scheme */
+  --color-bg-primary: #ffffff; 
+  --color-text-primary: #1f2937;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  /* Use a dark color scheme that matches your header */
+  --color-bg-primary: #111827; /* Deep dark blue/gray */
+  --color-text-primary: #f3f4f6; /* Light gray text */
+}
+
+/* Ensure the body inherits these colors */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}

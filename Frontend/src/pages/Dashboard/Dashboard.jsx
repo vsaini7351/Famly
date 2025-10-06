@@ -13,7 +13,7 @@ const menuItems = [
   { name: "Family Circles", component: <FamilyCircles /> },
   { name: "Add Memory", component: <AddMemory /> },
   { name: "Timeline", component: <Timeline /> },
-  { name: "Family Tree", component: <FamilyTree familyId={14} /> },
+  { name: "Family Tree", component: <FamilyTree  /> },
   { name: "Search", component: <Search /> },
   { name: "Memory Prompts", component: <MemoryPrompts /> },
   { name: "AI Insights", component: <AIInsights /> },
