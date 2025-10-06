@@ -73,7 +73,7 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existingUser) throw new ApiError(400, "User already exists with this email/username/phone");
 
   // Profile photo upload
-  let profilePhotoUrl = null;
+  let profilePhotoUrl = "https://res.cloudinary.com/famly/image/upload/v1759747438/default-profile-image_p9e5ln.jpg";
   //ek defalult image cloudinary par store karakar uska url yaha de denge
   console.log(req.file?.path)
   if (req.file?.path) {

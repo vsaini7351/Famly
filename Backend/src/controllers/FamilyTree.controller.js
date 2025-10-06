@@ -6,7 +6,7 @@ import { Membership, User, Family } from "../models/index.js";
 export async function getFamilyAncestorsAndDescendants(req, res) {
   try {
     
-    const userId = Number(req.user.user_id);
+    const userId = parseInt(req.user.user_id);
     if (!userId) {
       return res.status(400).json({ error: "User not found in request" });
     }
@@ -16,7 +16,7 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-
+    console.log(user)
     // ✅ 2. Find the family where this user is the root member (based on gender)
     const rootFamily = await Family.findOne({
       where:
@@ -32,7 +32,7 @@ export async function getFamilyAncestorsAndDescendants(req, res) {
     const familyId = Number(rootFamily.family_id);
     
     if (!familyId) {
-      return res.status(400).json({ error: "familyId required" });
+      return res.status(400).json({ error: "familyId not found" });
     }
 
     const ancestorOffset = Number(req.query.ancestorOffset ?? 0);
