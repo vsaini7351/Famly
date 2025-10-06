@@ -40,7 +40,7 @@ const Header = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 font-semibold text-lg">
+        <nav className="hidden md:flex items-center gap-6 font-semibold text-lg cursor-pointer">
           {["Home", "About", "Contact"].map((page) => {
             const path = page === "Home" ? "/" : `/${page.toLowerCase()}`;
             return (
@@ -58,7 +58,7 @@ const Header = () => {
           {!user ? (
             <Link
               to="/auth"
-              className={`px-5 py-2 rounded-full font-medium shadow-md transition-all duration-300
+              className={`px-5 py-2 rounded-full font-medium shadow-md transition-all duration-300 cursor-pointer
                 ${theme === "dark"
                   ? "bg-purple-700 text-white hover:bg-purple-600"
                   : "bg-purple-500 text-white hover:bg-purple-600"}`}
@@ -74,12 +74,12 @@ const Header = () => {
                 <img
                   src={user.profilePhoto}
                   alt="Profile"
-                  className="w-10 h-10 rounded-full border-2 border-purple-400 shadow-lg object-cover"
+                  className="w-10 h-10 rounded-full border-2 border-purple-400 shadow-lg object-cover cursor-pointer"
                 />
               </button>
               <button
                 onClick={handleLogout}
-                className={`flex items-center gap-1 font-medium transition-colors
+                className={`flex items-center gap-1 font-medium transition-colors cursor-pointer
                   ${theme === "dark" ? "text-red-400 hover:text-red-300" : "text-red-500 hover:text-red-400"}`}
               >
                 <LogOut size={18} /> Logout
@@ -90,7 +90,7 @@ const Header = () => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`ml-3 p-2 rounded-full transition-all hover:scale-110
+            className={`ml-3 p-2 rounded-full transition-all hover:scale-110 cursor-pointer
               ${theme === "dark" ? "bg-gray-700 text-yellow-400 hover:bg-gray-600"
                 : "bg-purple-100 text-purple-600 hover:bg-purple-200"}`}
           >
