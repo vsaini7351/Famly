@@ -22,19 +22,15 @@ const throttle = (func, limit) => {
 }
 
 // ====================================================================
-// StoryCard Component: NO CHANGE - KEPT AS IS
+// StoryCard Component: NO CHANGE (Uses auth context and enriched story data)
 // ====================================================================
 const StoryCard = ({ story, currentUserUserId }) => {
-    // --- REVISED: Extract uploader details from the component's context/props ---
-    // The current user (from auth context) is the uploader.
+    // --- Data Extraction (Using Auth Context for Uploader, Story for Family) ---
     const { auth } = useAuth();
     const uploaderFullname = auth?.user?.fullname || "You";
     const uploaderProfilePhoto = auth?.user?.profilePhoto;
-    
-    // Extract family details directly from the enriched story object
     const familyName = story.family_name || "Unknown Family"; 
-    const familyPhoto = story.family_photo; 
-    // -----------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
     const currentMedia = story.media[currentMediaIndex];
@@ -43,7 +39,6 @@ const StoryCard = ({ story, currentUserUserId }) => {
     const isLiked = story.liked_by.includes(currentUserUserId);
     const likesCount = story.liked_by.length;
 
-    // The rest of the rendering/logic for media and actions is unchanged
     const renderMedia = (mediaItem) => {
         switch (mediaItem.type) {
             case "image": return (<img src={mediaItem.url} alt="Story Media" className="w-full h-full object-cover"/>);
@@ -81,10 +76,8 @@ const StoryCard = ({ story, currentUserUserId }) => {
                 )}
                 
                 <div>
-                    {/* Display Uploader Fullname (From Auth Context) */}
                     <p className="text-sm font-semibold text-gray-800">{uploaderFullname}</p>
                     <p className="text-xs text-gray-500">
-                        {/* Display Family Name (From Story Data) */}
                         <span className="mr-2">• {new Date(story.createdAt).toLocaleDateString()}</span>
                         <span className="font-medium text-purple-600">{familyName}</span>
                     </p>
@@ -95,7 +88,6 @@ const StoryCard = ({ story, currentUserUserId }) => {
                 </button>
             </div>
 
-            {/* ... (The rest of the component body is unchanged) ... */}
             <div className="relative w-full aspect-video bg-gray-200 flex items-center justify-center">
                 {renderMedia(currentMedia)}
                 
@@ -144,14 +136,14 @@ const StoryCard = ({ story, currentUserUserId }) => {
 };
 
 // ====================================================================
-// Overview Component: REFACTORED FOR INFINITE SCROLL
+// Overview Component: FINAL VERSION with 2-COLUMN GRID FIX
 // ====================================================================
 const Overview = () => {
     const { auth } = useAuth();
     const user = auth?.user;
     const currentUserUserId = user?.user_id; 
 
-    // Profile state (kept separate from stories)
+    // Profile state 
     const [profileData, setProfileData] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
 
@@ -159,9 +151,9 @@ const Overview = () => {
     const [stories, setStories] = useState([]);
     const [page, setPage] = useState(1);
     const [loadingStories, setLoadingStories] = useState(false);
-    const [hasMore, setHasMore] = useState(true); // Tracks if more pages exist
+    const [hasMore, setHasMore] = useState(true); 
 
-    // Fetch user profile data (No change)
+    // Fetch user profile data 
     useEffect(() => {
         if (!currentUserUserId) return;
 
@@ -179,20 +171,19 @@ const Overview = () => {
         fetchProfile();
     }, [currentUserUserId]);
 
-    // Fetch stories function using the page state for the next chunk
+    // Fetch stories function 
     const fetchStories = useCallback(
         async () => {
-            if (!hasMore) return; // Stop fetching if we know there's no more data
-            if (loadingStories) return; // Prevent concurrent requests
+            if (!hasMore) return; 
+            if (loadingStories) return; 
 
             setLoadingStories(true);
             try {
-                // Use page state in the API call
+                // Ensure correct limit is used (5 is assumed as before)
                 const res = await api.get(`/content/user-recent-stories?page=${page}&limit=5`);
                 const fetchedStories = res.data.data.stories || [];
                 
                 setStories((prev) => {
-                    // Use a Set to ensure no duplicates are added
                     const existingIds = new Set(prev.map(s => s._id));
                     const newStories = fetchedStories.filter(
                         (story) => !existingIds.has(story._id)
@@ -200,7 +191,6 @@ const Overview = () => {
                     return [...prev, ...newStories];
                 });
                 
-                // If the number of stories returned is less than the limit (5), assume it's the last page
                 if (fetchedStories.length < 5) {
                     setHasMore(false);
                 }
@@ -211,33 +201,27 @@ const Overview = () => {
                 setLoadingStories(false);
             }
         },
-        // Dependencies must include page and hasMore to correctly capture their latest values
-        // Note: loadingStories is intentionally excluded from the dependency array because 
-        // the check `if (loadingStories) return;` prevents a loop, and including it here 
-        // could create an infinite loop if not handled carefully.
+        // Dependency array is correct for triggering fetch on page change
         [page, hasMore] 
     );
 
-    // 1. Trigger initial and subsequent page loads when 'page' state increments
+    // 1. Trigger initial and subsequent page loads 
     useEffect(() => {
         if (currentUserUserId) {
             fetchStories();
         }
     }, [fetchStories, currentUserUserId]);
 
-    // 2. Infinite Scroll Handler (Triggers the page increment)
+    // 2. Infinite Scroll Handler 
     const handleInfiniteScroll = useCallback(() => {
-        // Stop if already loading OR if the feed has no more pages
         if (loadingStories || !hasMore) return;
 
-        // Check if user is near the bottom (1px threshold, common practice)
         if (
             window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight
         ) {
-            // Increment page, which triggers the useEffect -> fetchStories loop
             setPage((prev) => prev + 1);
         }
-    }, [loadingStories, hasMore]); // Depends on the latest loading and hasMore state
+    }, [loadingStories, hasMore]); 
 
     // 3. Throttle and Attach/Cleanup Scroll Listener
     const throttledScrollHandler = throttle(handleInfiniteScroll, 200);
@@ -255,7 +239,6 @@ const Overview = () => {
     const adminFamily = families.find((f) => f.Membership?.role === "admin");
     const memberFamily = families.find((f) => f.Membership?.role === "member");
     
-    // Determine initial loading state based on both profile and first story load
     const isInitialLoading = loadingProfile || (loadingStories && stories.length === 0);
     
     if (isInitialLoading) {
@@ -272,7 +255,7 @@ const Overview = () => {
     return (
         <div className="p-6 bg-purple-50 min-h-screen">
             
-            {/* 🌟 Welcome Section (No change) */}
+            {/* 🌟 Welcome Section and Family Cards (No change) */}
             <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white p-6 rounded-2xl flex justify-between items-center shadow-md">
                 <div>
                     <h1 className="text-3xl font-semibold">Welcome back, {profile?.fullname?.split(" ")[0]}! 👋</h1>
@@ -296,16 +279,11 @@ const Overview = () => {
                 </div>
             </div>
             
-            {/* 👨‍👩‍👧 Family Cards (No change) */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {adminFamily && (
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-all border border-purple-100">
                         <div className="relative">
-                            <img
-                                src={adminFamily.familyPhoto}
-                                alt={adminFamily.family_name}
-                                className="w-full h-40 object-cover"
-                            />
+                            <img src={adminFamily.familyPhoto} alt={adminFamily.family_name} className="w-full h-40 object-cover"/>
                             <div className="absolute top-3 left-3 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Crown size={14} /> Admin Family
                             </div>
@@ -326,11 +304,7 @@ const Overview = () => {
                 {memberFamily && (
                     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-all border border-purple-100">
                         <div className="relative">
-                            <img
-                                src={memberFamily.familyPhoto}
-                                alt={memberFamily.family_name}
-                                className="w-full h-40 object-cover"
-                            />
+                            <img src={memberFamily.familyPhoto} alt={memberFamily.family_name} className="w-full h-40 object-cover"/>
                             <div className="absolute top-3 left-3 bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
                                 <Home size={14} /> Member Family
                             </div>
@@ -361,7 +335,9 @@ const Overview = () => {
             {/* 📝 User Recent Stories */}
             <div className="mt-12">
                 <h2 className="text-2xl font-semibold text-purple-700 mb-4">Your Recent Stories</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                
+                {/* FINAL FIX: Setting grid to 2 columns on medium/large screens */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
                     {stories.map((story) => (
                         <Link
                             to={`/stories/${story._id}`} 
@@ -371,7 +347,6 @@ const Overview = () => {
                             <StoryCard 
                                 story={story} 
                                 currentUserUserId={currentUserUserId} 
-                                familyInfo={families} 
                             />
                         </Link>
                     ))}
@@ -384,14 +359,12 @@ const Overview = () => {
                     </p>
                 )}
 
-                {/* Only show "End of stories" if there are *some* stories */}
                 {!loadingStories && !hasMore && stories.length > 0 && (
                     <p className="text-center mt-8 text-purple-600 font-medium border-t pt-4 border-purple-200">
                         You've reached the end of your recent stories. 📖
                     </p>
                 )}
 
-                {/* Empty state when initial load is done and no stories were found */}
                 {!loadingStories && stories.length === 0 && !hasMore && (
                     <p className="text-center mt-8 text-gray-500 font-medium">
                         No recent stories to display. Start sharing your family's memories!
