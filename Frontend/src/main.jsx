@@ -11,6 +11,8 @@ import Overview from './components/DashboardComponents/Overview.jsx'
 import { ThemeProvider } from './utils/ThemeContext.jsx'
 import PrivateGroups from './components/PrivateGroup/PriavateGroupDashboard.jsx'
 import UserProfile from './pages/userprofile/UserProfile.jsx'
+import About from './pages/About/About.jsx'
+import Contact from './pages/Contact/Contact.jsx'
 
 
 const router=createBrowserRouter(
@@ -24,6 +26,8 @@ const router=createBrowserRouter(
       <Route path='user/:user_id' element={<UserProfile/>} />
 
 
+      <Route path='about' element={<About/>} />
+      <Route path='contact' element={<Contact/>} />
     </Route>
 
   )
