@@ -256,6 +256,264 @@
 // export default AddMemory;
 
 
+// import React, { useState } from "react";
+// import { useAuth } from "../../utils/authContext";
+// import api from "../../utils/axios";
+
+// const AddMemory = ({ familyId }) => {
+//   const { auth, isAuthenticated } = useAuth();
+
+//   const [title, setTitle] = useState("");
+//   const [caption, setCaption] = useState("");
+//   const [memoryDate, setMemoryDate] = useState("");
+//   const [tags, setTags] = useState([]);
+
+//   const [mediaFiles, setMediaFiles] = useState([]); // image/video/audio
+//   const [mediaText, setMediaText] = useState([]); // text and "" placeholders
+//   const [previewUrls, setPreviewUrls] = useState([]);
+//   const [uploading, setUploading] = useState(false);
+
+//   // Add a text block
+//   const addTextBlock = () => {
+//     setMediaText((prev) => [...prev, ""]);
+//     setMediaFiles((prev) => [...prev, null]); // placeholder to keep alignment
+//   };
+
+//   // Add a media block
+//   const addMediaBlock = (e) => {
+//     const files = Array.from(e.target.files);
+//     const newFiles = [...mediaFiles];
+//     const newTexts = [...mediaText];
+//     const newPreviews = [...previewUrls];
+
+//     files.forEach((file) => {
+//       newFiles.push(file);
+//       newTexts.push(""); // empty string for file
+//       newPreviews.push(URL.createObjectURL(file));
+//     });
+
+//     setMediaFiles(newFiles);
+//     setMediaText(newTexts);
+//     setPreviewUrls(newPreviews);
+//   };
+
+//   // Update text description or text block
+//   const handleTextChange = (index, value) => {
+//     const updated = [...mediaText];
+//     updated[index] = value;
+//     setMediaText(updated);
+//   };
+
+//   const handleTagChange = (e) => {
+//     if (e.key === "Enter") {
+//       e.preventDefault();
+//       const tag = e.target.value.trim();
+//       if (tag && !tags.includes(tag)) setTags((prev) => [...prev, tag]);
+//       e.target.value = "";
+//     }
+//   };
+
+//   const removeTag = (tag) => setTags(tags.filter((t) => t !== tag));
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     if (!isAuthenticated) {
+//       alert("⚠️ Please sign in first.");
+//       window.location.href = "/auth";
+//       return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append("title", title);
+//     formData.append("caption", caption);
+//     formData.append("memory_date", memoryDate);
+
+//     // Only append actual files
+//     mediaFiles.forEach((f) => {
+//       if (f) formData.append("mediaFiles", f);
+//     });
+
+//     mediaText.forEach((t) => formData.append("mediaText", t));
+//     formData.append("tags", JSON.stringify(tags));
+
+//     try {
+//       setUploading(true);
+//       const res = await api.post(`/content/create-story/${familyId}`, formData, {
+//         headers: { "Content-Type": "multipart/form-data" },
+//       });
+
+//       alert("✅ Story uploaded successfully!");
+//       console.log("Response:", res.data);
+
+//       // Reset
+//       setTitle("");
+//       setCaption("");
+//       setMemoryDate("");
+//       setTags([]);
+//       setMediaFiles([]);
+//       setMediaText([]);
+//       setPreviewUrls([]);
+//     } catch (err) {
+//       console.error("Upload error:", err);
+//       alert("❌ Failed to upload story.");
+//     } finally {
+//       setUploading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8 mt-6 border border-gray-200">
+//       <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Add New Memory</h2>
+
+//       <form onSubmit={handleSubmit} className="space-y-6">
+//         {/* Basic Details */}
+//         <input
+//           type="text"
+//           placeholder="Title *"
+//           value={title}
+//           onChange={(e) => setTitle(e.target.value)}
+//           required
+//           className="w-full border rounded-lg p-3 text-lg"
+//         />
+
+//         <input
+//           type="text"
+//           placeholder="Caption"
+//           value={caption}
+//           onChange={(e) => setCaption(e.target.value)}
+//           className="w-full border rounded-lg p-3 text-lg"
+//         />
+
+//         <input
+//           type="date"
+//           value={memoryDate}
+//           onChange={(e) => setMemoryDate(e.target.value)}
+//           className="w-full border rounded-lg p-3 text-lg"
+//         />
+
+//         {/* Tags Section */}
+//         <div>
+//           <input
+//             type="text"
+//             placeholder="Press Enter to add tags"
+//             onKeyDown={handleTagChange}
+//             className="w-full border rounded-lg p-3 text-lg mb-2"
+//           />
+//           <div className="flex flex-wrap gap-2">
+//             {tags.map((tag, i) => (
+//               <span
+//                 key={i}
+//                 onClick={() => removeTag(tag)}
+//                 className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg cursor-pointer"
+//               >
+//                 #{tag}
+//               </span>
+//             ))}
+//           </div>
+//         </div>
+
+//         {/* Common Tags */}
+//         <div className="mt-2 text-gray-600">
+//           <span className="font-medium">Common Tags: </span>
+//           {["Birthday", "Holiday", "Vacation"].map((t) => (
+//             <button
+//               key={t}
+//               type="button"
+//               onClick={() => setTags((prev) => [...prev, t])}
+//               className="bg-blue-100 text-blue-700 rounded-full py-1 px-3 text-sm mr-2"
+//             >
+//               {t}
+//             </button>
+//           ))}
+//         </div>
+
+//         {/* Content Section */}
+//         <div className="mt-6">
+//           <label className="block text-lg font-semibold text-gray-800 mb-3">
+//             Add Memories
+//           </label>
+
+//           <div className="flex gap-4 mb-4">
+//             <button
+//               type="button"
+//               onClick={addTextBlock}
+//               className="bg-green-100 text-green-800 px-4 py-2 rounded-lg hover:bg-green-200"
+//             >
+//               ➕ Add Text Memory
+//             </button>
+
+//             <label className="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg hover:bg-purple-200 cursor-pointer">
+//               📸 Add Media Memory
+//               <input
+//                 type="file"
+//                 accept="image/*,video/*,audio/*"
+//                 multiple
+//                 onChange={addMediaBlock}
+//                 className="hidden"
+//               />
+//             </label>
+//           </div>
+
+//           {/* Show combined blocks */}
+//           {mediaText.map((text, i) => (
+//             <div key={i} className="border rounded-lg p-3 mb-4">
+//               {previewUrls[i] ? (
+//                 // If there is a file preview
+//                 <>
+//                   {mediaFiles[i]?.type?.startsWith("image") && (
+//                     <img
+//                       src={previewUrls[i]}
+//                       alt={`media-${i}`}
+//                       className="rounded-lg w-full h-48 object-cover mb-2"
+//                     />
+//                   )}
+//                   {mediaFiles[i]?.type?.startsWith("video") && (
+//                     <video
+//                       src={previewUrls[i]}
+//                       controls
+//                       className="rounded-lg w-full h-48 object-cover mb-2"
+//                     />
+//                   )}
+//                   {mediaFiles[i]?.type?.startsWith("audio") && (
+//                     <audio controls src={previewUrls[i]} className="w-full mb-2" />
+//                   )}
+//                 </>
+//               ) : null}
+
+//               {/* Text Input */}
+//               <textarea
+//                 placeholder={
+//                   previewUrls[i]
+//                     ? `Description for ${mediaFiles[i]?.name || "media"}`
+//                     : "Write your memory text here..."
+//                 }
+//                 value={text}
+//                 onChange={(e) => handleTextChange(i, e.target.value)}
+//                 className="w-full border rounded-lg p-3 text-lg"
+//               />
+//             </div>
+//           ))}
+//         </div>
+
+//         {/* Submit Button */}
+//         <button
+//           type="submit"
+//           disabled={uploading}
+//           className={`w-full py-3 rounded-lg text-white font-semibold transition ${
+//             uploading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+//           }`}
+//         >
+//           {uploading ? "Uploading..." : "Upload Memory"}
+//         </button>
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default AddMemory;
+
+
 import React, { useState } from "react";
 import { useAuth } from "../../utils/authContext";
 import api from "../../utils/axios";
