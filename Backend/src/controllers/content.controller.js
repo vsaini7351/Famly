@@ -600,7 +600,7 @@ const getRecentStories = asyncHandler(async (req, res) => {
 
 // fetching all user stories 
 const getUserRecentStories = asyncHandler(async (req, res) => {
-  const userId = req.user.user_id; // from auth middleware
+  const userId = parseInt(req.user.user_id); // from auth middleware
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;

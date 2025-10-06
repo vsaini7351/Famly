@@ -25,8 +25,7 @@ const router = express.Router();
 // Create a new family
 router.post("/create-family", verifyJWT, upload.single("familyPhoto"), createFamily);
 
-// Get family details by ID
-router.get("/:familyId", verifyJWT, getFamily);
+
 
 // Add a normal member
 router.post("/add-member/:family_id", verifyJWT, addMember);
@@ -44,10 +43,12 @@ router.delete("/remove-member/:family_id", verifyJWT, removeMember);
 router.delete("/delete-family/:family_id", verifyJWT, deleteFamily);
 
 
-router.get("/tree/:familyId", verifyJWT, getFamilyAncestorsAndDescendants);
+router.get("/tree", verifyJWT, getFamilyAncestorsAndDescendants);
 
 
 router.post("/join-family", verifyJWT, joinFamily);
 
 router.post("/leave-family/:family_id", verifyJWT, leaveMember);
+// Get family details by ID
+router.get("/:familyId", verifyJWT, getFamily);
 export default router;

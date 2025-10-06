@@ -38,7 +38,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch {
         clearAuthData();
-        window.location.href = "/user/login";
+        window.location.href = "/auth";
         return Promise.reject(err);
       }
     }

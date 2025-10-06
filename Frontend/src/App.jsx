@@ -5,19 +5,18 @@ import Header from './components/Common/Header';
 
 
 function App() {
-  
   return (
-   <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 to-white">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
-      <main className="flex-1">
+      {/* Make sure main expands to fill space */}
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
 
-      <Footer />
-
+      {/* <Footer /> */}
     </div>
-  )
+  );
 }
 
 
