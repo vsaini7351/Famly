@@ -3,6 +3,6 @@ import { generateFamilyStoriesPDF } from "../controllers/pdf.controller.js";
 
 const router = express.Router();
 
-router.get("/families/:familyId/stories", generateFamilyStoriesPDF);
+router.post("/families/:familyId/stories", generateFamilyStoriesPDF);
 
 export default router;
