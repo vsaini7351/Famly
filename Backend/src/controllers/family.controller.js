@@ -51,7 +51,7 @@ const createFamily = asyncHandler(async (req, res) => {
   }
 
   // Upload familyPhoto if provided
-  let familyPhotoUrl = null;
+  let familyPhotoUrl = "https://res.cloudinary.com/famly/image/upload/v1759747171/default-family-image_vjfu7v.jpg";
   if (req.file) {
     familyPhotoUrl = (await uploadOnCloudinary(req.file.path, "image")).secure_url;
   }

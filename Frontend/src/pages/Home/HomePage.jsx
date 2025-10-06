@@ -297,14 +297,14 @@ import { Link } from "react-router-dom";
 import hero from "../../assets/home-image.jpg";
 import annu from "../../assets/famly-logo.png";
 import { useAuth } from "../../utils/authContext"; 
-import { useTheme } from "../../utils/ThemeContext"; 
+import { useTheme } from "../../utils/ThemeContext"; // Removed in final code, but kept for context 
 import api from "../../utils/axios"; 
 import { Heart, MessageCircle, Share2, Bookmark, Image as ImageIcon, FileText, Film, Volume2, Clock, ChevronLeft, ChevronRight, MoreVertical } from "lucide-react";
 
 
 // ====================================================================
 // StoryCard Component: Displays a single memory with media carousel
-// (LOGIC REMAINS DUAL-THEME FOR WHEN USER IS LOGGED IN)
+// (ALL DARK MODE CLASSES REMOVED)
 // ====================================================================
 const StoryCard = React.memo(({ story, currentUserId }) => {
     const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
@@ -350,23 +350,39 @@ const StoryCard = React.memo(({ story, currentUserId }) => {
         }
     };
     
+    // --- REFINED RENDER MEDIA FUNCTION ---
     const renderMedia = (mediaItem) => {
         if (!mediaItem) return null;
         switch (mediaItem.type) {
             case "image":
                 return <img src={mediaItem.url} alt="Story Media" className="w-full h-full object-cover" />;
             case "video":
-                return <div className="relative w-full h-full">
-                    <video src={mediaItem.url} className="w-full h-full object-cover" controls={false} />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <Film size={48} className="text-white opacity-80" />
+                // Use the HTML5 video element with controls for user playback
+                return (
+                    <div className="relative w-full h-full bg-black">
+                        <video 
+                            src={mediaItem.url} 
+                            className="w-full h-full object-contain" // Use object-contain to ensure video isn't clipped
+                            controls 
+                            poster={mediaItem.thumbnailUrl} // Optional: Add a thumbnail/poster
+                        />
                     </div>
-                </div>;
+                );
             case "audio":
-                return <div className="flex items-center justify-center min-h-[200px] bg-purple-200 dark:bg-purple-900/50 rounded-lg"><audio controls className="w-full px-4 py-8"><source src={mediaItem.url} type="audio/mp3" /></audio></div>;
+                // Use the HTML5 audio element with controls
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-[150px] bg-purple-200 rounded-lg p-4">
+                        <Volume2 size={32} className="text-purple-600 mb-3"/>
+                        <p className="text-gray-700 text-sm mb-2">Audio Memory</p>
+                        <audio controls className="w-full max-w-xs">
+                            <source src={mediaItem.url} type="audio/mp3" />
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                );
             case "text":
-                return <div className="p-4 bg-purple-100 dark:bg-purple-900/50 min-h-[200px] flex flex-col justify-center rounded-lg text-gray-700 dark:text-gray-300">
-                    <p className="font-medium text-lg mb-2 text-center">{mediaItem.text}</p>
+                return <div className="p-6 bg-purple-100 min-h-[200px] flex flex-col justify-center rounded-lg text-gray-700">
+                    <p className="font-medium text-lg mb-2 whitespace-pre-wrap">{mediaItem.text}</p>
                 </div>;
             default:
                 return null;
@@ -386,7 +402,7 @@ const StoryCard = React.memo(({ story, currentUserId }) => {
     const cleanedTags = (story.tags || []).map(tag => tag.replace(/[\[\]"]/g, '')).filter(t => t.length > 0);
 
     return (
-        <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 mb-6 max-w-xl mx-auto">
+        <div className="bg-white p-5 rounded-xl shadow-lg border border-gray-200 mb-6 max-w-xl mx-auto">
             
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -394,10 +410,10 @@ const StoryCard = React.memo(({ story, currentUserId }) => {
                     <img src={uploader.profilePhoto || "https://via.placeholder.com/40"} alt={uploader.fullname} className="w-10 h-10 rounded-full mr-3 object-cover" />
                     <div className="flex flex-col">
                         <div className="flex items-center space-x-2">
-                            <p className="font-semibold text-gray-800 dark:text-gray-200">{uploader.fullname}</p>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-700 dark:text-white text-purple-600">Grandmother</span> 
+                            <p className="font-semibold text-gray-800">{uploader.fullname}</p>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-600">Grandmother</span> 
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-gray-500">
                             @{uploader.username} • {timeAgo} • Johnson Family
                         </p>
                     </div>
@@ -407,20 +423,20 @@ const StoryCard = React.memo(({ story, currentUserId }) => {
 
             {/* Media/Content Area */}
             <div className="mb-4">
-                <h3 className="text-xl font-bold text-purple-700 dark:text-purple-400 mb-2 flex items-center space-x-2">
+                <h3 className="text-xl font-bold text-purple-700 mb-2 flex items-center space-x-2">
                     {currentMedia?.type === 'image' && <ImageIcon size={20} className="text-purple-500" />}
                     {currentMedia?.type === 'video' && <Film size={20} className="text-purple-500" />}
                     {currentMedia?.type === 'audio' && <Volume2 size={20} className="text-purple-500" />}
                     {currentMedia?.type === 'text' && <FileText size={20} className="text-purple-500" />}
                     <span>{story.title}</span>
                 </h3>
-                <p className="text-gray-700 dark:text-gray-300 mb-3">{story.caption}</p>
+                <p className="text-gray-700 mb-3">{story.caption}</p>
 
-                {/* Media Carousel Wrapper */}
-                <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
+                {/* Media Carousel Wrapper - Aspect ratio set to handle various media, adjusted if not text/audio */}
+                <div className={`relative w-full ${currentMedia?.type !== 'text' && currentMedia?.type !== 'audio' ? 'aspect-video' : ''} rounded-lg overflow-hidden border border-gray-300`}>
                     {renderMedia(currentMedia)}
                     
-                    {/* Carousel Controls */}
+                    {/* Carousel Controls (Logic is fine) */}
                     {totalMedia > 1 && (
                         <>
                             <button
@@ -447,94 +463,196 @@ const StoryCard = React.memo(({ story, currentUserId }) => {
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2 mb-4">
-                {cleanedTags.map((tag, i) => <span key={i} className="text-xs font-medium px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-300">#{tag}</span>)}
+                {cleanedTags.map((tag, i) => <span key={i} className="text-xs font-medium px-3 py-1 rounded-full bg-purple-100 text-purple-600">#{tag}</span>)}
             </div>
 
             {/* Actions (Like, Comment, Share) */}
-            <div className="flex items-center justify-between border-t pt-3 border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between border-t pt-3 border-gray-100">
                 <div className="flex space-x-6">
-                    <button onClick={handleLikeToggle} className={`flex items-center text-sm transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500 dark:text-gray-400 hover:text-red-400'}`}>
+                    <button onClick={handleLikeToggle} className={`flex items-center text-sm transition-colors ${isLiked ? 'text-red-500' : 'text-gray-500 hover:text-red-400'}`}>
                         <Heart size={18} fill={isLiked ? 'currentColor' : 'none'} className="mr-1" /> {likes}
                     </button>
-                    <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 transition-colors text-sm">
+                    <button className="flex items-center text-gray-500 hover:text-purple-600 transition-colors text-sm">
                         <MessageCircle size={18} className="mr-1" /> 0
                     </button>
-                    <button className="flex items-center text-gray-500 dark:text-gray-400 hover:text-purple-600 transition-colors text-sm">
+                    <button className="flex items-center text-gray-500 hover:text-purple-600 transition-colors text-sm">
                         <Share2 size={18} className="mr-1" /> 0
                     </button>
                 </div>
-                <Bookmark size={18} className="text-gray-500 dark:text-gray-400 hover:text-purple-600 cursor-pointer" />
+                <Bookmark size={18} className="text-gray-500 hover:text-purple-600 cursor-pointer" />
             </div>
         </div>
     );
 });
 
 
+
 // ====================================================================
 // StoryFeed Component: Fetches and renders the timeline
-// (LOGIC REMAINS DUAL-THEME FOR WHEN USER IS LOGGED IN)
+// (ALL DARK MODE CLASSES REMOVED)
+// ====================================================================
+// ====================================================================
+// StoryFeed Component: Implements Infinite Scroll
+// (STATIC LIGHT MODE)
 // ====================================================================
 const StoryFeed = () => {
     const { auth } = useAuth();
     const currentUserId = auth?.user?.user_id;
 
     const [stories, setStories] = useState([]);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [hasMore, setHasMore] = useState(true); // Tracks if there are more pages
+    const [initialLoadError, setInitialLoadError] = useState(null);
 
-    useEffect(() => {
-        const fetchFeed = async () => {
-            try {
-                const res = await api.get("/content/recent-story");
-                setStories(res.data.data.stories);
-            } catch (err) {
-                setError("Failed to load stories. Please check your network or try again.");
-                console.error("Story Feed Error:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchFeed();
+    const resetFeed = useCallback(() => {
+        setStories([]);
+        setPage(1);
+        setLoading(true);
+        setHasMore(true);
+        setInitialLoadError(null);
     }, []);
 
-    if (loading) {
-        return <div className="text-center py-20 text-xl font-semibold text-purple-600 dark:text-purple-400">Loading your family stories...</div>;
-    }
+    // Function to fetch stories for the current page
+    const fetchStories = useCallback(async () => {
+        if (!hasMore && page > 1) return; // Stop if no more stories are expected
+        
+        // Only set loading to true if we are on page 1 or have more to fetch
+        setLoading(true); 
+        try {
+            // Updated API endpoint to include pagination parameter
+            const res = await api.get(`/content/recent-story?page=${page}`);
+            const newStories = res?.data?.data?.stories || [];
 
-    if (error) {
-        return <div className="text-center py-20 text-xl text-red-600 dark:text-red-400">{error}</div>;
-    }
+            setStories(prev => {
+                // Prevent duplicate stories in case of multiple renders/scrolls
+                const newStoryIds = new Set(prev.map(s => s._id));
+                const filteredNewStories = newStories.filter(s => !newStoryIds.has(s._id));
+                return [...prev, ...filteredNewStories];
+            });
 
+            // If we received fewer than the expected number of items (or none), assume it's the last page.
+            // We'll assume a page size of 10 for this check, but you should use your actual page size.
+            // Using `newStories.length === 0` is safer if the API guarantees no results on the last page.
+            if (newStories.length === 0) {
+                setHasMore(false);
+            }
+            
+            if (page === 1 && newStories.length === 0) {
+                 setInitialLoadError("No stories yet. Start preserving your memories!");
+            } else {
+                 setInitialLoadError(null); // Clear error if data is found on subsequent pages
+            }
+            
+        } catch (err) {
+            console.error("Story Feed Fetch Error:", err);
+            if (page === 1) {
+                setInitialLoadError("Failed to load stories. Please check your network or try again.");
+            }
+        } finally {
+            setLoading(false);
+        }
+    }, [page, hasMore]);
+
+    // Scroll handler to detect when to load the next page
+    const handleInfiniteScroll = useCallback(() => {
+        // Only proceed if not already loading and there are potentially more stories
+        if (loading || !hasMore) return; 
+
+        // Check if user is near the bottom (e.g., within 100px)
+        const isBottom = (window.innerHeight + document.documentElement.scrollTop + 100) >= document.documentElement.scrollHeight;
+        
+        if (isBottom) {
+            setPage(prev => prev + 1);
+        }
+    }, [loading, hasMore]);
+
+     useEffect(() => {
+        // If the access token is missing, the user is logged out (or accessing as a public user)
+        // Since StoryFeed is only rendered when logged in, this handles switching users or logging out.
+        if (!auth?.accessToken && stories.length > 0) {
+            resetFeed();
+        } else if (auth?.accessToken && stories.length === 0 && page === 1 && !loading) {
+            // Re-fetch only if logged in, feed is empty, and we haven't started fetching page 1 yet.
+            // This case prevents infinite re-renders while logging in.
+            fetchStories();
+        }
+    }, [auth, stories.length, loading, page, resetFeed, fetchStories]);
+    
+    // 2. Data Fetch Effect: Triggers on mount and when 'page' state changes
+    useEffect(() => {
+        fetchStories();
+    }, [fetchStories]);
+
+    // 1. Initial/Page Load Effect
+    useEffect(() => {
+        fetchStories();
+    }, [fetchStories]);
+
+    // 2. Scroll Listener Effect
+    useEffect(() => {
+        window.addEventListener("scroll", handleInfiniteScroll);
+
+        return () => window.removeEventListener("scroll", handleInfiniteScroll);
+    }, [handleInfiniteScroll]);
+
+
+    // --- RENDERING LOGIC ---
+
+    // Case 1: Initial (Page 1) loading state, or an error occurred on page 1
+    if (loading && stories.length === 0 && initialLoadError === null) {
+        return <div className="text-center py-20 text-xl font-semibold text-purple-600">Loading your family stories...</div>;
+    }
+    
+    // Case 2: Initial load finished and found no stories (empty state or load error)
     if (stories.length === 0) {
         return (
             <div className="text-center py-20">
-                <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">No stories yet. Start preserving your memories!</p>
+                <p className={`text-xl mb-4 ${initialLoadError ? 'text-red-600' : 'text-gray-600'}`}>
+                    {initialLoadError || "No stories yet. Start preserving your memories!"}
+                </p>
                 <Link to="/create-family" className="bg-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-purple-700 transition-all">Create Your Family</Link>
             </div>
         );
     }
-
+    
+    // Case 3: Display the feed and infinite scroll indicators
     return (
-        // StoryFeed container retains dark mode switch
-        <div className="py-12 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+        <div className="py-12 bg-gray-50 min-h-screen transition-colors duration-300">
             <div className="max-w-2xl mx-auto px-4">
-                <h2 className="text-3xl font-bold text-center text-purple-700 dark:text-purple-400 mb-8">Recent Family Stories</h2>
+                <h2 className="text-3xl font-bold text-center text-purple-700 mb-8">Recent Family Stories</h2>
+                
                 {stories.map(story => (
                     <StoryCard key={story._id} story={story} currentUserId={currentUserId} />
                 ))}
+
+                {/* Loading indicator for subsequent pages */}
+                {loading && hasMore && (
+                    <div className="text-center py-4 text-purple-600 font-medium">
+                        Loading more memories...
+                    </div>
+                )}
+
+                {/* End of content message */}
+                {!hasMore && (
+                     <div className="text-center py-8 text-gray-500 border-t mt-4">
+                        You've reached the end of the timeline! 🎉
+                    </div>
+                )}
             </div>
         </div>
     );
 };
+// The rest of the Home component remains unchanged.
 
 
 // ====================================================================
 // Home Component: Conditional View based on Authentication
-// (LOGGED OUT VIEW IS NOW STATIC LIGHT MODE)
+// (THEME DEPENDENCY REMOVED, ALL DARK MODE CLASSES REMOVED)
 // ====================================================================
 const Home = () => {
     const { auth } = useAuth();
-    const { theme } = useTheme(); 
+    // Removed useTheme import and usage
 
     const isUserAuthenticated = !!auth?.accessToken;
 
@@ -544,7 +662,6 @@ const Home = () => {
 
     // If user is NOT logged in, show the marketing landing page (STATIC LIGHT MODE)
     return (
-        // 1. Main Wrapper: Static light colors (no dark: classes)
         <main className="bg-gray-50 text-gray-800 font-sans transition-colors duration-300 min-h-screen">
 
             {/* --- Hero Section (Landing Page) --- */}
@@ -571,7 +688,6 @@ const Home = () => {
             </header>
 
             {/* --- About FAMLY Section --- */}
-            {/* 2. Static light background */}
             <div className="relative bg-white overflow-hidden transition-colors duration-300">
 
                 <div className="relative pt-6 pb-16 sm:pb-24 lg:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -620,6 +736,7 @@ const Home = () => {
                             { title: "Invite Members", text: "Easily send invitations to family members via email or a special link." },
                             { title: "Share & Preserve", text: "Upload photos, videos, and stories to build your collective memory bank." }
                         ].map((item, index) => (
+                            // Removed bg-blue-200 (using white for cleaner light mode), kept light bg-purple
                             <div key={index} className="bg-white p-8 rounded-xl shadow-md transform hover:-translate-y-2 transition-transform border border-purple-200">
                                 <div className="bg-purple-100 text-purple-600 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-6">
                                     <span className="text-2xl font-bold">{index + 1}</span>
@@ -646,11 +763,13 @@ const Home = () => {
 
                 <div className="grid md:grid-cols-2 gap-8">
                     {[
+                        // Changed feature card background from gradient to static white with light border
                         { title: "Private & Secure", text: "Top-tier encryption ensures your memories are for your eyes only.", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944A12.02 12.02 0 0012 21a12.02 12.02 0 009-8.056z"></path></svg>},
                         { title: "Easy for Everyone", text: "Our intuitive interface is designed for all ages, from grandkids to grandparents.", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>},
                         { title: "Collaborative Timeline", text: "Everyone can contribute. See your family's history unfold in a shared, chronological story.", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>},
                         { title: "Unlimited Storage", text: "Preserve every photo, video, and story without worrying about running out of space.", icon: <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>},
                     ].map((feature, index) => (
+                        // Removed bg-gradient-to-br from-violet-500 to-fuchsia-500
                         <div key={index} className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-purple-200">
                             <div className="flex items-start space-x-5">
                                 <div className="flex-shrink-0">
@@ -680,6 +799,7 @@ const Home = () => {
                             { q: "Is my family's data safe?", a: "Absolutely. Security is our highest priority. All data is encrypted, and your family circle is completely private." },
                             { q: "How many members can I invite?", a: "Our standard plan allows up to 50 members. We also offer larger plans for bigger families!" },
                         ].map((item, index) => (
+                            // Removed bg-gradient-to-br from-violet-500 to-fuchsia-500
                             <div key={index} className="bg-white p-5 rounded-lg shadow-sm border border-purple-300">
                                 <h3 className="font-semibold text-lg text-gray-800">{item.q}</h3>
                                 <p className="text-gray-600 mt-2">{item.a}</p>
@@ -690,6 +810,7 @@ const Home = () => {
             </section>
             
             {/* --- Footer --- */}
+            {/* Changed background from bg-gradient-to-r from-purple-800 to-indigo-900 to just bg-purple-800 for simplicity */}
             <div className="bg-purple-800 text-white transition-colors duration-300">
                 <div className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8">

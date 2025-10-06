@@ -8,7 +8,7 @@ import {User,Family,Membership} from "../models/index.js";
 
 import natural from "natural";
 import sw from "stopword";
-import { User } from '../models/user.models.js'
+
 const API_KEY = process.env.HUGGINGFACE_API_KEY;
 
 
@@ -658,31 +658,69 @@ const getRecentStories = asyncHandler(async (req, res) => {
 
 // fetching all user stories 
 const getUserRecentStories = asyncHandler(async (req, res) => {
-  const userId = parseInt(req.user.user_id); // from auth middleware
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+    const userId = parseInt(req.user.user_id); // from auth middleware
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-  // Fetch stories uploaded by this user
-  const stories = await Story.find({ uploaded_by: userId })
-    .sort({ memory_date: -1, createdAt: -1 }) // recent first
-    .skip(skip)
-    .limit(limit);
+    // 1️⃣ Fetch stories uploaded by this user from MongoDB
+    const stories = await Story.find({ uploaded_by: userId })
+        .sort({ memory_date: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(); // Use lean() for better performance
 
-  const totalStories = await Story.countDocuments({ uploaded_by: userId });
-  const totalPages = Math.ceil(totalStories / limit);
+    // --- Data Enrichment Steps (Focus on Family Details) ---
+    
+    // 2️⃣ Collect all unique family IDs from the fetched stories
+    const familyIds = [...new Set(stories.map(s => s.family_id))];
 
-  return res.status(200).json(
-    new ApiResponse(200, {
-      stories,
-      pagination: {
-        page,
-        limit,
-        totalPages,
-        totalStories
-      }
-    }, "User's recent stories fetched successfully")
-  );
+    // 3️⃣ Fetch family information (Name and Photo) from PostgreSQL
+    let familyMap = {};
+    if (familyIds.length > 0) {
+        const families = await Family.findAll({
+            where: { family_id: familyIds },
+            // Fetch only the family details required for the story card
+            attributes: ["family_id", "family_name", "familyPhoto"], 
+            raw: true,
+        });
+
+        // Convert to a quick lookup map { family_id: { family_id, family_name, familyPhoto } }
+        familyMap = Object.fromEntries(
+            families.map(f => [f.family_id, f])
+        );
+    }
+    
+    // 4️⃣ Merge family info into each story
+    const storiesWithDetails = stories.map(story => {
+        const familyInfo = familyMap[story.family_id] || { 
+            family_name: "Unknown Family",
+            familyPhoto: null
+        };
+        
+        return {
+            ...story,
+            // We skip fetching Uploader details (username, fullname) here,
+            // as the frontend already knows this user. We'll attach the user ID
+            // but the client will need to use its local auth context for the rest.
+            
+            // Attach family details
+            family_name: familyInfo.family_name,
+            family_photo: familyInfo.familyPhoto, // Added familyPhoto
+        };
+    });
+
+    // 5️⃣ Pagination calculation
+    const totalStories = await Story.countDocuments({ uploaded_by: userId });
+    const totalPages = Math.ceil(totalStories / limit);
+
+    // 6️⃣ Send final response
+    return res.status(200).json(
+        new ApiResponse(200, {
+            stories: storiesWithDetails,
+            pagination: { page, limit, totalPages, totalStories }
+        }, "User's recent stories fetched successfully")
+    );
 });
 
 const extractTagsFromQuery = (query) => {
@@ -769,6 +807,27 @@ const extractTagsFromQuery = (query) => {
     totalPages: 0,
   };
   const data = result[0].data;
+
+   if (data.length > 0) {
+        // 3️⃣ Collect all unique uploader IDs from the search results
+        const uploaderIds = [...new Set(data.map(story => story.uploaded_by))];
+
+        // 4️⃣ Fetch user info from PostgreSQL in one batch query
+        const users = await User.findAll({
+            where: { user_id: uploaderIds },
+            attributes: ["user_id", "fullname", "username", "profilePhoto"],
+            raw: true,
+        });
+
+        // Convert to a quick lookup map { user_id: user_object }
+        const userMap = Object.fromEntries(users.map(u => [u.user_id, u]));
+
+        // 5️⃣ Merge user info into each story object
+        data = data.map(story => ({
+            ...story,
+            uploaded_by_user: userMap[story.uploaded_by] || null,
+        }));
+    }
 
   return res.status(200).json(
     new ApiResponse(200, { stories: data, metadata }, "Stories fetched successfully")
