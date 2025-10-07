@@ -7,6 +7,10 @@ import famlyLogo from "../../assets/famly-logo.png";
 import { Sun, Moon, Menu, X, LogOut } from "lucide-react";
 import NotificationsPage from "../../pages/notifications/NotificationPage";
 import { Bell } from "lucide-react";
+import About from "../../pages/About/About";
+import Home from "../../pages/Home/HomePage";
+
+
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useAuth();

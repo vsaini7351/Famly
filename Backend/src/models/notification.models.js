@@ -8,7 +8,7 @@ const notificationSchema = new Schema({
 
   type: {
     type: String,
-    enum: ["birthday", "anniversary", "milestone", "comment","like", "story"],
+    enum: ["birthday", "anniversary", "general", "comment","like", "story"],
     required: true,
   },
 
@@ -41,7 +41,9 @@ const notificationSchema = new Schema({
     milestoneName: { type: String },   // for milestone (e.g. "100 stories")
     storyId: { type: String },         // for story notifications
     commentId: { type: String },       // for comment notifications
-    groupId: { type: String },         // optional: link to group
+    groupId: { type: String }, 
+    fromUserId: { type: Number }, 
+    groupNotificationId : {type :Number},        // optional: link to group
   },
 
   expiresAt: {
