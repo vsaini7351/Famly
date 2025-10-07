@@ -377,96 +377,11 @@ import puppeteer from "puppeteer";
 import { Story } from "../models/story.models.js";
 import { User, Family, Membership } from "../models/index.js";
 
-// --- DESIGN & TEMPLATE SECTION (No changes needed here) ---
-
-const getCssTemplate = () => `
-  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Poppins:wght@400;600&display=swap');
-  :root {
-    --font-heading: 'Lora', serif;
-    --font-body: 'Poppins', sans-serif;
-    --color-text-dark: #3a3a3a;
-    --color-text-light: #5e5e5e;
-    --color-card-bg: #fdfcff;
-    --color-border: #e9e4f0;
-    --page-padding: 1.2cm;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: var(--font-body);
-    color: var(--color-text-dark);
-    background: linear-gradient(to bottom right, #f0fdf4, #f5f3ff);
-    -webkit-print-color-adjust: exact;
-    margin: 0;
-  }
-  .page {
-    page-break-after: always;
-    padding: var(--page-padding);
-    position: relative;
-    overflow: hidden;
-    height: 297mm;
-    width: 210mm;
-  }
-  .page:last-of-type { page-break-after: auto; }
-  .cover-page {
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    text-align: center; height: 100%;
-    background: linear-gradient(135deg, #e0f2fe, #d8b4fe, #a7f3d0);
-  }
-  .cover-page h1 { font-family: var(--font-heading); font-size: 40pt; color: white; text-shadow: 2px 2px 6px rgba(0,0,0,0.2); margin: 0; }
-  .cover-page h2 { font-size: 16pt; color: white; margin: 10px 0 30px 0; opacity: 0.9; }
-  .cover-page .description { font-size: 11pt; max-width: 60ch; color: white; line-height: 1.6; opacity: 0.95; margin-bottom: 40px; }
-  .cover-page .members-section {
-    background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(10px); border-radius: 12px; padding: 20px 30px; color: #2e2e2e;
-  }
-  .members-section p { margin: 5px 0; font-weight: 600; font-size: 10pt; }
-  .members-section span { font-weight: 400; }
-  .memory-card {
-    background: var(--color-card-bg);
-    border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 25px;
-    box-shadow: 0 6px 20px rgba(100, 80, 130, 0.08);
-    page-break-inside: avoid;
-  }
-  .memory-card .header { margin-bottom: 16px; }
-  .header .username { font-size: 14pt; font-weight: 600; color: #6d28d9; }
-  .header .date { font-size: 10pt; color: var(--color-text-light); margin-left: 8px; }
-  .image-container {
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-radius: 10px;
-    overflow: hidden;
-    background-color: #f0f0f0;
-    margin-bottom: 16px;
-  }
-  .image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .caption {
-    font-size: 11pt;
-    color: var(--color-text-light);
-    line-height: 1.7;
-    text-align: justify;
-  }
-`;
-
-const createHtmlDocument = (content, css) => `
-  <html>
-    <head><style>${css}</style></head>
-    <body>${content}</body>
-  </html>
-`;
-
-// --- MAIN PDF GENERATION LOGIC ---
 
 export const generateFamilyStoriesPDF = async (req, res) => {
   try {
     const { familyId } = req.params;
-    const { title, subtitle, description } = req.body;
+    const { title, subtitle, description } = req.body; // ✅ Added new dynamic fields
 
     if (!familyId) return res.status(400).json({ error: "familyId is required" });
 
@@ -486,24 +401,89 @@ export const generateFamilyStoriesPDF = async (req, res) => {
       userMap[u.user_id] = { name: u.fullname };
     });
 
-    // ✅ FIX 1: Removed parseInt() to correctly query MongoDB with a string ID.
-    const stories = await Story.find({ family_id: familyId })
-      .sort({ memory_date: 1 });
+    // Fetch stories
+    const stories = await Story.find({ family_id: parseInt(familyId) })
+      .sort({ memory_date: 1, createdAt: 1 });
 
-    // HTML Page Construction
-    let htmlContent = '';
-
-    // 1. Cover Page
-    const maleRootName = userMap[family.male_root_member]?.name || 'N/A';
-    const femaleRootName = userMap[family.female_root_member]?.name || 'N/A';
-    htmlContent += `
-      <div class="page cover-page">
-        <h1>${title || `The ${family.family_name} Family`}</h1>
-        <h2>${subtitle || 'Our Beautiful Memories'}</h2>
-        <p class="description">${description || 'A collection of cherished moments, stories, and milestones that define our family.'}</p>
-        <div class="members-section">
-          <p>Root Members: <span>${maleRootName} & ${femaleRootName}</span></p>
-          ${members.length ? `<p>Family: <span>${members.map(m => m.fullname).join(', ')}</span></p>` : ''}
+    // Build HTML
+    let html = `
+    <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fefefe; }
+          .cover { text-align: center; padding: 50px 20px; background: #e0f7fa; border-bottom: 4px solid #00796b; }
+          .cover h1 { font-size: 38px; margin-bottom: 8px; color: #004d40; }
+          .cover h2 { font-size: 22px; margin-bottom: 8px; color: #00695c; }
+          .cover p.desc { font-size: 15px; color: #004d40; margin: 12px 0; max-width: 700px; margin-left: auto; margin-right: auto; }
+          .members { font-size: 14px; color: #004d40; margin-top: 15px; }
+          .memories { padding: 20px; display: block; }
+          .memory {
+            border: 2px solid #00796b;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+            background: #fff;
+          }
+          .memory .header { margin-bottom: 8px; }
+          .username {
+            font-size: 18px;
+            font-weight: bold;
+            color: #004d40;
+          }
+          .date {
+            font-size: 14px;
+            color: #777;
+            margin-left: 6px;
+          }
+          .memory img {
+            border-radius: 6px;
+            margin-bottom: 8px;
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+          }
+          .memory.landscape img { width: 100%; }
+          .memory.portrait {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+          }
+          .memory.portrait img {
+            max-width: 40%;
+            margin-right: 12px;
+          }
+          .memory.portrait .details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+          }
+          .caption {
+            font-size: 14px;
+            color: #555;
+            margin-top: 6px;
+            text-align: justify;
+          }
+          .footer {
+            text-align: center;
+            padding: 20px;
+            border-top: 2px solid #00796b;
+            font-size: 12px;
+            color: #555;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="cover">
+          <h1>${title || `Beautiful Memories of ${family.family_name}`}</h1>
+          ${subtitle ? `<h2>${subtitle}</h2>` : ""}
+          <p class="desc">${description || family.description || ""}</p>
+          <p class="members">
+            Root Members: 
+            ${userMap[family.male_root_member]?.name || 'N/A'} (M), 
+            ${userMap[family.female_root_member]?.name || 'N/A'} (F)
+          </p>
+          ${members.length ? `<p class="members">Other Members: ${members.map(m => m.fullname).join(', ')}</p>` : ""}
         </div>
       </div>
     `;
