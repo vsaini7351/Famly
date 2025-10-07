@@ -5,13 +5,15 @@ import { useAuth } from "../../utils/authContext";
 import { useTheme } from "../../utils/ThemeContext";
 import famlyLogo from "../../assets/famly-logo.png";
 import { Sun, Moon, Menu, X, LogOut } from "lucide-react";
-
+import NotificationsPage from "../../pages/notifications/NotificationPage";
+import { Bell } from "lucide-react";
 const Header = () => {
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
   const user = auth?.user;
 
   const [menuOpen, setMenuOpen] = useState(false);
+
 
   const { theme, toggleTheme } = useTheme();
 
@@ -104,6 +106,14 @@ const Header = () => {
               >
                 <LogOut size={18} /> Logout
               </button>
+              <button
+                onClick={() => navigate("/notifications")} // ✅ navigate to page
+                className={`flex items-center gap-1 font-medium transition-colors
+    ${theme === "dark" ? "text-purple-300 hover:text-purple-200" : "text-purple-700 hover:text-purple-500"}`}
+              >
+                <Bell size={18} /> Notifications
+              </button>
+
             </div>
           )}
 

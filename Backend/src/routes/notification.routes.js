@@ -15,7 +15,7 @@ const router = Router();
 router.post("/notification/create", verifyJWT, createNotification);
 router.post("/notification/generate/birthdays", generateBirthdayNotifications);
 router.post("/notification/generate/anniversaries", generateAnniversaryNotifications);
-router.get("/notification/user/:userId", verifyJWT, getUserNotifications);
+router.get("/notification/user", verifyJWT, getUserNotifications);
 router.patch("/notification/:id/read", verifyJWT, markAsRead);
 router.patch("/notification/user/:userId/read-all", verifyJWT, markAllAsRead);
 router.delete("/notification/:id", verifyJWT, deleteNotification);
