@@ -11,10 +11,11 @@ import Overview from './components/DashboardComponents/Overview.jsx'
 import { ThemeProvider } from './utils/ThemeContext.jsx'
 import PrivateGroups from './components/PrivateGroup/PriavateGroupDashboard.jsx'
 import UserProfile from './pages/userprofile/UserProfile.jsx'
-import About from './pages/About/About.jsx'
-import Contact from './pages/Contact/Contact.jsx'
-
-
+import NotificationsPage from './pages/notifications/NotificationPage.jsx'
+import MemberFamilyPage from './pages/family/MemberFamilyPage.jsx'
+import OwnerFamilyPage from './pages/family/OwnerFamilyPage.jsx'
+import CreateFamilyForm from './components/family/FamilyForm.jsx'
+import JoinFamilyCard from './components/family/JoinFamilythroughInvitationCode.jsx'
 const router=createBrowserRouter(
   createRoutesFromElements(
     <Route path='/' element={<App />} errorElement>
@@ -26,8 +27,13 @@ const router=createBrowserRouter(
       <Route path='user/:user_id' element={<UserProfile/>} />
 
 
-      <Route path='about' element={<About/>} />
-      <Route path='contact' element={<Contact/>} />
+        <Route path="notifications" element={<NotificationsPage />} />
+      <Route path="owner-family/:familyId" element={<OwnerFamilyPage/>} />
+      <Route path="member-family/:familyId" element={<MemberFamilyPage/>} />
+      <Route path="create-family" element={<CreateFamilyForm/>} />
+      <Route path="join-family-through-code" element={<JoinFamilyCard/>} />
+        
+
     </Route>
 
   )

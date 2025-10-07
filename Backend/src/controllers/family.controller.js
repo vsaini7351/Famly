@@ -174,7 +174,7 @@ const addRootMember = asyncHandler(async (req, res) => {
   if (!targetUserId) throw new ApiError(400, "user_id is required");
 
   // Get current user
-  const currentUser = await User.findByPk(Number(req.user.user._id));
+  const currentUser = await User.findByPk(Number(req.user.user_id));
   if (!currentUser) throw new ApiError(404, "Current user not found");
 
   // Get target user
@@ -244,10 +244,11 @@ const updateFamily = asyncHandler(async (req, res) => {
   // Fetch family
   const family = await Family.findByPk(family_id);
   if (!family) throw new ApiError(404, "Family not found");
-
+  
   // Check if the user is one of the root members
-  const userId = Number(req.user.user._id);
-  if (family.male_root_member !== userId && family.female_root_member !== userId) {
+  const userId = Number(req.user.user_id);
+  console.log("famly",typeof(family.female_root_member) ," ", typeof(family.male_root_member), " ",typeof(userId ))
+  if (Number(family.male_root_member) !== userId && Number(family.female_root_member) !== userId) {
     throw new ApiError(403, "Only root members can update family details");
   }
 
@@ -278,7 +279,7 @@ const updateFamily = asyncHandler(async (req, res) => {
 
 const removeMember = asyncHandler(async (req, res) => {
 const family_id = Number(req.params.family_id);
-const user_id = Number(req.body.user_id);
+const user_id = Number(req.user.user_id);
 
 
   if (!family_id || !user_id) {
@@ -290,13 +291,13 @@ const user_id = Number(req.body.user_id);
   if (!family) throw new ApiError(404, "Family not found");
 
   // Check if requester is a root member
-  const currentUserId = Number(req.user.user._id);
-  if (family.male_root_member !== currentUserId && family.female_root_member !== currentUserId) {
+  const currentUserId = Number(req.user.user_id);
+  if (Number(family.male_root_member) !== currentUserId && Number(family.female_root_member) !== currentUserId) {
     throw new ApiError(403, "Only root members can remove members from this family");
   }
 
   // Check if target user is a root member
-  if (family.male_root_member === user_id || family.female_root_member === user_id) {
+  if (Number(family.male_root_member) !== user_id && Number(family.female_root_member) !== user_id) {
     throw new ApiError(400, "Cannot remove a root member from the family");
   }
 
@@ -335,7 +336,7 @@ const user_id = Number(req.body.user_id);
 
 const leaveMember = asyncHandler(async (req, res) => {
  const family_id = Number(req.params.family_id);
-  const user_id= Number(req.user.user._id);
+  const user_id= Number(req.user.user_id);
 
   if (!family_id || !user_id) {
     throw new ApiError(400, "family_id and user_id are required");
@@ -347,7 +348,7 @@ const leaveMember = asyncHandler(async (req, res) => {
 
 
   // Check if target user is a root member
-  if (family.male_root_member === user_id || family.female_root_member === user_id) {
+  if (Number(family.male_root_member) === user_id || Number(family.female_root_member) === user_id) {
     throw new ApiError(400, "Cannot remove a root member from the family");
   }
 
@@ -393,10 +394,10 @@ const deleteFamily = asyncHandler(async (req, res) => {
   const family = await Family.findByPk(family_id);
   if (!family) throw new ApiError(404, "Family not found");
 
-  const currentUserId = Number(req.user.user._id);
+  const currentUserId = Number(req.user.user_id);
 
   // Only root members can delete
-  if (family.male_root_member !== currentUserId && family.female_root_member !== currentUserId) {
+  if (Number(family.male_root_member) !== currentUserId && Number(family.female_root_member) !== currentUserId) {
     throw new ApiError(403, "Only root members can delete this family");
   }
 
@@ -437,6 +438,8 @@ const joinFamily = asyncHandler(async (req, res) => {
   if (!user) throw new ApiError(404, "User not found");
 
   // Check if user already belongs to another family
+  console.log(user.parent_family , " " , typeof(user.parent_family))
+  console.log(user)
   if (user.parent_family !== null) {
     throw new ApiError(400, "You already belong to another family and cannot join");
   }

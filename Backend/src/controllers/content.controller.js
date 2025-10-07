@@ -136,7 +136,8 @@ const createStory = asyncHandler(async (req, res) => {
   // GPT tags from caption
   // const captionAITags = await generateTagsFromText(caption);
   const captionAITags=[];
-
+ console.log(mediaFiles);
+ console.log(mediaText);
   for (let i = 0; i < mediaText.length; i++) {
     let mediaAITags = [];
     let textForTags = "";
@@ -315,6 +316,61 @@ const unlikeStory = asyncHandler(async (req, res) => {
 //   );
 // });
 // fetching family stories according to recent uploaded date
+
+// const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
+//   const { familyId } = req.params;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const page = parseInt(req.query.page) || 1;
+
+//   if (!familyId) throw new ApiError(400, "Family ID is required");
+
+//   // Fetch stories from MongoDB
+//   const stories = await Story.find({ family_id: Number(familyId) })
+//     .sort({ memory_date: 1 })
+//     .skip((page - 1) * limit)
+//     .limit(limit)
+//     .lean();
+
+//   const total = await Story.countDocuments({ family_id: Number(familyId) });
+
+//   // 1️⃣ Collect unique user_ids from stories
+//   const userIds = [...new Set(stories.map(s => s.uploaded_by))];
+
+//   // 2️⃣ Fetch users from PostgreSQL
+//   const users = await User.findAll({
+//     where: { user_id: userIds },
+//     attributes: ["user_id", "fullname" ,"profile_url"],
+//     raw: true,
+//   });
+
+//   // Convert users to a lookup map
+//   const userMap = {};
+//   users.forEach(u => {
+//     userMap[u.user_id] = u.fullname;
+//   });
+
+//   // 3️⃣ Merge user fullname into stories
+//   const enrichedStories = stories.map(story => ({
+//     ...story,
+//     uploaded_by: {
+//       user_id: story.uploaded_by,
+//       fullname: userMap[story.uploaded_by] || "Unknown User",
+//     },
+//   }));
+
+//   return res.status(200).json(
+//     new ApiResponse(200, {
+//       stories: enrichedStories,
+//       pagination: {
+//         total,
+//         page,
+//         limit,
+//         totalPages: Math.ceil(total / limit),
+//       },
+//     }, "Stories fetched with uploader names")
+//   );
+// });
+
 const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
   const limit = parseInt(req.query.limit) || 10;
@@ -322,7 +378,7 @@ const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
 
   if (!familyId) throw new ApiError(400, "Family ID is required");
 
-  // Fetch stories from MongoDB
+  // 1️⃣ Fetch stories from MongoDB
   const stories = await Story.find({ family_id: Number(familyId) })
     .sort({ memory_date: 1 })
     .skip((page - 1) * limit)
@@ -331,45 +387,58 @@ const getFamilyStoriesAsc = asyncHandler(async (req, res) => {
 
   const total = await Story.countDocuments({ family_id: Number(familyId) });
 
-  // 1️⃣ Collect unique user_ids from stories
+  // 2️⃣ Collect unique user_ids from stories
   const userIds = [...new Set(stories.map(s => s.uploaded_by))];
 
-  // 2️⃣ Fetch users from PostgreSQL
+  // 3️⃣ Fetch users from PostgreSQL including profilePhoto
   const users = await User.findAll({
     where: { user_id: userIds },
-    attributes: ["user_id", "fullname"],
+    attributes: ["user_id", "fullname", "profilePhoto"],
     raw: true,
   });
 
-  // Convert users to a lookup map
+  // 4️⃣ Convert users to a lookup map
   const userMap = {};
   users.forEach(u => {
-    userMap[u.user_id] = u.fullname;
+    userMap[u.user_id] = {
+      fullname: u.fullname,
+      profilePhoto: u.profilePhoto || null,
+    };
   });
 
-  // 3️⃣ Merge user fullname into stories
+  // 5️⃣ Merge user data into stories
   const enrichedStories = stories.map(story => ({
     ...story,
     uploaded_by: {
       user_id: story.uploaded_by,
-      fullname: userMap[story.uploaded_by] || "Unknown User",
+      ...userMap[story.uploaded_by] || { fullname: "Unknown User", profilePhoto: null },
     },
   }));
 
+  // 6️⃣ Return response
   return res.status(200).json(
-    new ApiResponse(200, {
-      stories: enrichedStories,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    new ApiResponse(
+      200,
+      {
+        stories: enrichedStories,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    }, "Stories fetched with uploader names")
+      "Stories fetched with uploader info"
+    )
   );
 });
 
+
+
+
+
 // fetching family stroies according to recent uploaded date
+
 
 const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
   const { familyId } = req.params;
@@ -378,7 +447,7 @@ const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
 
   if (!familyId) throw new ApiError(400, "Family ID is required");
 
-  // Fetch stories from MongoDB
+  // 1️⃣ Fetch stories from MongoDB
   const stories = await Story.find({ family_id: Number(familyId) })
     .sort({ createdAt: -1 })
     .skip((page - 1) * limit)
@@ -387,43 +456,54 @@ const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
 
   const total = await Story.countDocuments({ family_id: Number(familyId) });
 
-  // 1️⃣ Collect unique user_ids from stories
+  // 2️⃣ Collect unique user_ids from stories
   const userIds = [...new Set(stories.map(s => s.uploaded_by))];
 
-  // 2️⃣ Fetch users from PostgreSQL
+  // 3️⃣ Fetch users from PostgreSQL including profilePhoto
   const users = await User.findAll({
     where: { user_id: userIds },
-    attributes: ["user_id", "fullname"],
+    attributes: ["user_id", "fullname", "profilePhoto"],
     raw: true,
   });
 
-  // Convert users to a lookup map
+  // 4️⃣ Convert users to a lookup map
   const userMap = {};
   users.forEach(u => {
-    userMap[u.user_id] = u.fullname;
+    userMap[u.user_id] = {
+      fullname: u.fullname,
+      profilePhoto: u.profilePhoto || null,
+    };
   });
 
-  // 3️⃣ Merge user fullname into stories
+  // 5️⃣ Merge user data into stories
   const enrichedStories = stories.map(story => ({
     ...story,
     uploaded_by: {
       user_id: story.uploaded_by,
-      fullname: userMap[story.uploaded_by] || "Unknown User",
+      ...userMap[story.uploaded_by] || { fullname: "Unknown User", profilePhoto: null },
     },
   }));
 
+  // 6️⃣ Return response
   return res.status(200).json(
-    new ApiResponse(200, {
-      stories: enrichedStories,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
+    new ApiResponse(
+      200,
+      {
+        stories: enrichedStories,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
       },
-    }, "Stories fetched with uploader names")
+      "Stories fetched with uploader info"
+    )
   );
 });
+
+
+
 // const getFamilyStoriesDesc = asyncHandler(async (req, res) => {
 //   const { familyId } = req.params;
 //   const limit = parseInt(req.query.limit) || 10;

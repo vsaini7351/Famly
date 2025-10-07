@@ -268,7 +268,7 @@ const generateAnniversaryNotifications = asyncHandler(async (req, res) => {
 
 // ========== GET USER NOTIFICATIONS ==========
 const getUserNotifications = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
+  const userId=parseInt(req.user.user_id);
   const page = Number(req.query.page) || 1; // default page = 1
   const limit = 10; // fixed 10 notifications per page
   const skip = (page - 1) * limit;
@@ -277,15 +277,38 @@ const getUserNotifications = asyncHandler(async (req, res) => {
   const notifications = await Notification.find({ userId })
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .lean();
 
   // Count total notifications
   const totalCount = await Notification.countDocuments({ userId });
   const totalPages = Math.ceil(totalCount / limit);
+   console.log(notifications)
+   console.log("hii")
 
+   const userIds = [...new Set(notifications.map(n => n.userId))];
+  const users = await User.findAll({
+    where: { user_id: userIds },
+    attributes: ["user_id", "fullname"],
+    raw: true,
+  });
+
+  const userMap = {};
+  users.forEach(u => {
+    userMap[u.user_id] = u.fullname;
+  });
+
+  const enrichedNotifications = notifications.map(n => ({
+    ...n,
+    user: {
+      user_id: n.userId,
+      fullname: userMap[n.userId] || "Unknown User",
+    },
+  }));
+   
   return res.status(200).json(
     new ApiResponse(200, {
-      notifications,
+      notifications: enrichedNotifications,
       page,
       totalPages,
       totalCount

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import MediaRenderer from "./MediaRenderer"; 
 import { Heart, MessageCircle, Share2 } from 'lucide-react'; 
 
-export default function TimelineCard({ story, isFirst = false, isLast = false }) {
+export default function StoryCard({ story, isFirst = false, isLast = false }) {
     const [showFullCaption, setShowFullCaption] = useState(false);
 
     const memoryDate = story.memory_date || story.createdAt;
