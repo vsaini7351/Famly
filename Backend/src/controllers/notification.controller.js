@@ -10,29 +10,122 @@ import { NUMBER } from "sequelize";
 import { Op } from "sequelize";
 
 // ========== CREATE NOTIFICATION (manual) ==========
-const createNotification = asyncHandler(async (req, res) => {
-    console.log(req.body)
+// const createNotification = asyncHandler(async (req, res) => {
+//     console.log(req.body)
+//   const { type, title, message, meta, expiresAt } = req.body;
+
+//   const userId = Number(req.user.user_id)
+//   if (!userId || !type || !title || !message) {
+//     throw new ApiError(400, "userId, type, title and message are required");
+//   }
+
+//   const notif = await Notification.create({
+//     userId,
+//     type,
+//     title,
+//     message,
+//     status: "unread",
+//     meta: meta || {},
+//     expiresAt: expiresAt || null
+//   });
+
+//   return res
+//     .status(201)
+//     .json(new ApiResponse(201, notif, " Notification created successfully"));
+// });
+
+ const createNotification = asyncHandler(async (req, res) => {
   const { type, title, message, meta, expiresAt } = req.body;
 
-  const userId = Number(req.user.user_id)
+  const userId = Number(req.user?.user_id);
+  const senderName = req.user?.fullname || "A family member";
+
   if (!userId || !type || !title || !message) {
     throw new ApiError(400, "userId, type, title and message are required");
   }
 
-  const notif = await Notification.create({
-    userId,
-    type,
-    title,
-    message,
-    status: "unread",
-    meta: meta || {},
-    expiresAt: expiresAt || null
+  // 1️⃣ Fetch families of sender
+  const memberships = await Membership.findAll({ where: { user_id: userId } });
+  if (!memberships.length) {
+    throw new ApiError(400, "User is not part of any family");
+  }
+
+  const familyIds = memberships.map((m) => m.family_id);
+
+  // 2️⃣ Fetch all members of those families
+  const allMembers = await Membership.findAll({
+    where: { family_id: familyIds },
   });
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, notif, " Notification created successfully"));
+  if (!allMembers.length) {
+    throw new ApiError(404, "No family members found");
+  }
+
+  // 3️⃣ Collect unique member IDs (excluding sender)
+  const uniqueMemberIds = [
+    ...new Set(allMembers.map((m) => Number(m.user_id))),
+  ].filter((id) => id !== userId);
+
+  // 4️⃣ Prepare notification objects
+  const notifications = [];
+
+  // For sender (so they also see their notification)
+  // notifications.push({
+  //   userId,
+  //   type,
+  //   title,
+  //   message,
+  //   status: "unread",
+  //   meta: meta || {},
+  //   expiresAt: expiresAt || null,
+  // });
+
+  // For sender
+const groupNotificationId = Date.now();
+notifications.push({
+  userId,
+  type,
+  title,
+  message,
+  status: "unread",
+  meta: {
+    ...meta,
+    fromUserId: userId,
+    groupNotificationId
+  },
+  expiresAt: expiresAt || null,
 });
+
+  // For each unique recipient
+  uniqueMemberIds.forEach((memberId) => {
+    notifications.push({
+      userId: memberId,
+      type,
+      title,
+      message: `${senderName} says: ${message}`,
+      status: "unread",
+      meta: {
+        ...meta,
+        fromUserId: userId,
+        groupNotificationId,
+      },
+      expiresAt: expiresAt || null,
+    });
+  });
+
+  // 5️⃣ Insert into MongoDB once per user
+  const createdNotifications = await Notification.insertMany(notifications);
+
+  // 6️⃣ Respond
+  return res.status(201).json(
+    new ApiResponse(
+      201,
+      createdNotifications,
+      "Notifications created and sent to all family members successfully"
+    )
+  );
+});
+
 
 
 // ========== GENERATE BIRTHDAY NOTIFICATIONS (family + groups) ==========
@@ -267,6 +360,8 @@ const generateAnniversaryNotifications = asyncHandler(async (req, res) => {
 
 
 // ========== GET USER NOTIFICATIONS ==========
+
+
 const getUserNotifications = asyncHandler(async (req, res) => {
   const userId=parseInt(req.user.user_id);
   const page = Number(req.query.page) || 1; // default page = 1
@@ -352,15 +447,29 @@ const markAllAsRead = asyncHandler(async (req, res) => {
 
 
 // ========== DELETE NOTIFICATION ==========
+// const deleteNotification = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+
+//   const notif = await Notification.findByIdAndDelete(id);
+//   if (!notif) throw new ApiError(404, "Notification not found");
+
+//   return res
+//     .status(200)
+//     .json(new ApiResponse(200, {}, " Notification deleted successfully"));
+// });
+
 const deleteNotification = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const notif = await Notification.findByIdAndDelete(id);
+  const notif = await Notification.findById(id);
   if (!notif) throw new ApiError(404, "Notification not found");
+
+  // Delete all notifications with the same groupNotificationId
+  await Notification.deleteMany({ "meta.groupNotificationId": notif.meta.groupNotificationId });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, {}, " Notification deleted successfully"));
+    .json(new ApiResponse(200, {}, "Notification deleted for all family members"));
 });
 
 
