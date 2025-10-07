@@ -9,6 +9,8 @@ import DashboardLayout from './pages/Dashboard/Dashboard.jsx'
 import Overview from './components/DashboardComponents/Overview.jsx'
 
 import { ThemeProvider } from './utils/ThemeContext.jsx'
+import PrivateGroups from './components/PrivateGroup/PriavateGroupDashboard.jsx'
+import UserProfile from './pages/userprofile/UserProfile.jsx'
 import NotificationsPage from './pages/notifications/NotificationPage.jsx'
 import MemberFamilyPage from './pages/family/MemberFamilyPage.jsx'
 import OwnerFamilyPage from './pages/family/OwnerFamilyPage.jsx'
@@ -21,6 +23,10 @@ const router=createBrowserRouter(
       <Route path='auth' element={<AuthPage/>} />
       <Route path='dashboard' element={<DashboardLayout/>} />
       <Route path='overview' element={<Overview/>} />
+      <Route path='private-group' element={<PrivateGroups/>} />
+      <Route path='user/:user_id' element={<UserProfile/>} />
+
+
         <Route path="notifications" element={<NotificationsPage />} />
       <Route path="owner-family/:familyId" element={<OwnerFamilyPage/>} />
       <Route path="member-family/:familyId" element={<MemberFamilyPage/>} />

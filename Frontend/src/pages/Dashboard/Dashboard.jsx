@@ -88,11 +88,11 @@ const RightPanelContent = () => { // Renamed from RightPanel to RightPanelConten
             <QuickActions />
 
             <div className="bg-white p-4 md:p-5 rounded-xl shadow-lg border border-gray-200 mt-4 md:mt-6">
-                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-4">Recent Activity</h3>
+                <h3 className="text-base md:text-lg font-bold text-gray-800 mb-4  ">Recent Activity</h3>
                 <ul className="space-y-3 text-sm">
                     {recentActivity.map((activity, index) => (
-                        <li key={index} className="text-gray-700 border-b border-gray-100 pb-2 last:border-b-0">
-                            <span className="text-purple-600 font-medium mr-1">•</span>
+                        <li key={index} className="text-gray-700 border-b border-gray-100 pb-2 last:border-b-0 ">
+                            <span className="text-purple-600 font-medium mr-1 ">•</span>
                             {activity}
                         </li>
                     ))}
@@ -134,14 +134,14 @@ export default function DashboardLayout() {
             </div>
 
             {/* Navigation Links */}
-            <nav className="space-y-1">
+            <nav className="space-y-1 ">
                 {menuItems.map((item) => {
                     const isActive = selectedComponentName === item.name;
                     return (
                         <button
                             key={item.name}
                             onClick={() => { setSelectedComponentName(item.name); setIsSidebarOpen(false); }}
-                            className={`w-full flex items-start space-x-3 p-3 rounded-xl transition-all duration-200 text-left
+                            className={`w-full flex items-start space-x-3 p-3 rounded-xl transition-all duration-200 text-left cursor-pointer
                                 ${
                                     isActive
                                         ? "bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white shadow-lg"
@@ -173,7 +173,7 @@ export default function DashboardLayout() {
                 ].map((item) => (
                     <button
                         key={item.name}
-                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-purple-50 transition-colors text-left"
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-purple-50 transition-colors text-left cursor-pointer"
                     >
                         <div className="flex items-center space-x-3">
                             <span className="text-purple-600 flex-shrink-0">{item.icon}</span>

@@ -159,7 +159,7 @@ const AddMemory = ({ familyId }) => {
           <button 
             type="button" 
             onClick={addTextBlock} 
-            className="bg-teal-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-teal-600 transition-all duration-300 ease-in-out shadow-sm hover:shadow-md"
+            className="bg-teal-500 text-white font-semibold px-5 py-2 rounded-lg hover:bg-teal-600 transition-all duration-300 ease-in-out shadow-sm hover:shadow-md cursor-pointer"
           >
             ➕ Add Text Block
           </button>
@@ -207,7 +207,7 @@ const AddMemory = ({ familyId }) => {
         <button 
           type="submit" 
           disabled={uploading} 
-          className={`w-full py-3 rounded-lg text-white font-semibold text-lg transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl ${uploading ? "bg-slate-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}`}
+          className={`cursor-pointer w-full py-3 rounded-lg text-white font-semibold text-lg transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl ${uploading ? "bg-slate-400 cursor-not-allowed" : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"}`}
         >
           {uploading ? "Uploading..." : "Upload Memory"}
         </button>
